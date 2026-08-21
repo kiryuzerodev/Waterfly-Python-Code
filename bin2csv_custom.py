@@ -74,7 +74,6 @@ while True:
                               msg.Yaw])
 print(len(Attitude_Data))
 
-
 # Now we will start matching the time stamps and adding them
 # with our closest matching IMU timestamps
 
