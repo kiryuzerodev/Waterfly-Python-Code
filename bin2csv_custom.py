@@ -50,8 +50,4 @@ for i in range(1,len(Master_Time_Axis)):
 print(Time_Axis[:10])
 
 
-
-
-
-
-
+# Now we will
