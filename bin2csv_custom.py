@@ -49,6 +49,81 @@ for i in range(1,len(Master_Time_Axis)):
     Time_Axis.append(val)
 print(Time_Axis[:10])
 
+#
+# Now we will attempt to read the sensor data - Attitude first
+# reload the flight log as we went to the end of the file
+flight_log = mavutil.mavlink_connection(flight_log_path)
 
-# Now we will
-#say some random bullshit
+# Iterate until we start getting the Attitude Data
+# ATT contains - Time, DesRoll, Roll, DesPitch, Pitch, DesYaw, Yaw
+# and the Active EKF
+
+Attitude_Data = []
+while True:
+    msg = flight_log.recv_match()
+# Logic remains the same as when we read the data for the IMU
+    if msg is None:
+        break
+    if msg.get_type() == "ATT":
+        Attitude_Data.append([msg.TimeUS,
+                              msg.DesRoll,
+                              msg.DesPitch,
+                              msg.DesYaw,
+                              msg.Roll,
+                              msg.Pitch,
+                              msg.Yaw])
+print(len(Attitude_Data))
+
+
+# Now we will start matching the time stamps and adding them
+# with our closest matching IMU timestamps
+
+Attitude_Timed = []
+tol = 10_000# Tolerance for how close the data must be, if
+#it is less than this we can add it with the time stamp
+# NOTE: We will be first checking which is the closest and add
+# the data there
+
+i = 0 # controls Master Time
+j = 0 # Data time
+while i < len(Master_Time_Axis):
+    mtime = Master_Time_Axis[i]
+    if j < len(Attitude_Data):
+        # Attitude_Data[j][0] corresponds to attitude time stamp
+        if abs(mtime - Attitude_Data[j][0]) < tol:
+            Attitude_Timed.append([
+                mtime,
+                Attitude_Data[j][1],
+                Attitude_Data[j][2],
+                Attitude_Data[j][3],
+                Attitude_Data[j][4],
+                Attitude_Data[j][5],
+                Attitude_Data[j][6]
+            ])
+            i = i + 1
+            j = j + 1
+        elif mtime > Attitude_Data[j][0]:
+            j = j + 1
+        else:
+            # No measurement for this master time
+            Attitude_Timed.append([
+                mtime,
+                float("NaN"),
+                float("NaN"),
+                float("NaN"),
+                float("NaN"),
+                float("NaN"),
+                float("NaN")
+            ])
+            i += 1
+    else:
+        Attitude_Timed.append([
+            mtime,
+            float("NaN"),
+            float("NaN"),
+            float("NaN"),
+            float("NaN"),
+            float("NaN"),
+            float("NaN")
+        ])
+        i += 1
