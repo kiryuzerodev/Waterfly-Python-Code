@@ -1,6 +1,8 @@
 #Import the needed header file for reading MAVLink
 from pymavlink import mavutil
 
+
+
 # Where the log is
 flight_log_path = "/home/kiryuzerodev/Downloads/Waterfly Test Flights/18 Aug Flight Test at 13_49hrs.bin"
 
@@ -82,11 +84,29 @@ tol = 10_000# Tolerance for how close the data must be, if
 #it is less than this we can add it with the time stamp
 # NOTE: We will be first checking which is the closest and add
 # the data there
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Function for adding NaN easily
+def nan_row(matime, number_of_values):
+    row = [matime]
 
+    for k in range(number_of_values):
+        row.append(float("NaN"))
+
+    return row
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 i = 0 # controls Master Time
 j = 0 # Data time
+
+# Double pointer tech to keep moving the master time and
+# attitude time, and when there is no more master time,
+# we just put everything as NaN.
+# When there is no close value, we put NaN. This can be
+# detected by the fact that if the data point time increases
+# and master time is still way back, it means there is no
+# matching timestamp and we will proceed to the next one
 while i < len(Master_Time_Axis):
     mtime = Master_Time_Axis[i]
+
     if j < len(Attitude_Data):
         # Attitude_Data[j][0] corresponds to attitude time stamp
         if abs(mtime - Attitude_Data[j][0]) < tol:
@@ -105,24 +125,13 @@ while i < len(Master_Time_Axis):
             j = j + 1
         else:
             # No measurement for this master time
-            Attitude_Timed.append([
-                mtime,
-                float("NaN"),
-                float("NaN"),
-                float("NaN"),
-                float("NaN"),
-                float("NaN"),
-                float("NaN")
-            ])
+            Attitude_Timed.append(nan_row(mtime, 6))
             i += 1
     else:
-        Attitude_Timed.append([
-            mtime,
-            float("NaN"),
-            float("NaN"),
-            float("NaN"),
-            float("NaN"),
-            float("NaN"),
-            float("NaN")
-        ])
+        Attitude_Timed.append(nan_row(mtime, 6))
         i += 1
+print(len(Attitude_Timed))
+
+############# REPEAT FOR REMAINING DATA SETS ###############
+# Copied from AI as it is just a repetation of what we did with
+# the double pointer technique
