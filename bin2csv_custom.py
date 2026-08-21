@@ -41,7 +41,7 @@ while True:
              last_time = msg.TimeUS
              # Loop back to get next data point
 # shows number of data points
-print(len(Master_Time_Axis))
+
 
 # Convert into seconds from micro seconds and also make sure the entire
 # time axis is increasing
@@ -49,7 +49,7 @@ Time_Axis = [0]
 for i in range(1,len(Master_Time_Axis)):
     val = (Master_Time_Axis[i]-Master_Time_Axis[0])/1_000_000
     Time_Axis.append(val)
-print(Time_Axis[:10])
+
 
 #
 # Now we will attempt to read the sensor data - Attitude first
@@ -74,7 +74,7 @@ while True:
                               msg.Roll,
                               msg.Pitch,
                               msg.Yaw])
-print(len(Attitude_Data))
+
 
 # Now we will start matching the time stamps and adding them
 # with our closest matching IMU timestamps
@@ -130,8 +130,8 @@ while i < len(Master_Time_Axis):
     else:
         Attitude_Timed.append(nan_row(mtime, 6))
         i += 1
-print(len(Attitude_Timed))
+
 
 ############# REPEAT FOR REMAINING DATA SETS ###############
-# Copied from AI as it is just a repetation of what we did with
+# Copied from AI as it is just a repetition of what we did with
 # the double pointer technique
