@@ -182,6 +182,7 @@ while True:
             msg.AccY,
             msg.AccZ
         ])
+
 # For BAROMETER
 BARO_Data = []
 
@@ -256,6 +257,7 @@ while True:
             msg.VibeZ,
             msg.Clip
         ])
+
 # For GPS
 GPS_Data = []
 
@@ -281,6 +283,7 @@ while True:
             msg.VZ,
             msg.Yaw
         ])
+
 # For RC INPUTS
 
 RCIN_Data = []
@@ -342,6 +345,179 @@ while True:
             msg.C14
         ])
 
+# For EKF XKF1
+XKF1_Data = []
+
+flight_log = mavutil.mavlink_connection(flight_log_path)
+
+while True:
+    msg = flight_log.recv_match()
+
+    if msg is None:
+        break
+
+    if msg.get_type() == "XKF1":
+        XKF1_Data.append([
+            msg.TimeUS,
+            msg.C,
+            msg.Roll,
+            msg.Pitch,
+            msg.Yaw,
+            msg.VN,
+            msg.VE,
+            msg.VD,
+            msg.dPD,
+            msg.PN,
+            msg.PE,
+            msg.PD,
+            msg.GX,
+            msg.GY,
+            msg.GZ,
+            msg.OH
+        ])
+
+# For EKF XKF2
+XKF2_Data = []
+
+flight_log = mavutil.mavlink_connection(flight_log_path)
+
+while True:
+    msg = flight_log.recv_match()
+
+    if msg is None:
+        break
+
+    if msg.get_type() == "XKF2":
+        XKF2_Data.append([
+            msg.TimeUS,
+            msg.C,
+            msg.AX,
+            msg.AY,
+            msg.AZ,
+            msg.VWN,
+            msg.VWE,
+            msg.MN,
+            msg.ME,
+            msg.MD,
+            msg.MX,
+            msg.MY,
+            msg.MZ,
+            msg.IDX,
+            msg.IDY,
+            msg.IS
+        ])
+
+# For EKF XKF3
+XKF3_Data = []
+
+flight_log = mavutil.mavlink_connection(flight_log_path)
+
+while True:
+    msg = flight_log.recv_match()
+
+    if msg is None:
+        break
+
+    if msg.get_type() == "XKF3":
+        XKF3_Data.append([
+            msg.TimeUS,
+            msg.C,
+            msg.IVN,
+            msg.IVE,
+            msg.IVD,
+            msg.IPN,
+            msg.IPE,
+            msg.IPD,
+            msg.IMX,
+            msg.IMY,
+            msg.IMZ,
+            msg.IYAW,
+            msg.IVT,
+            msg.RErr,
+            msg.ErSc
+        ])
+
+# For Navigation NTUN
+NTUN_Data = []
+
+flight_log = mavutil.mavlink_connection(flight_log_path)
+
+while True:
+    msg = flight_log.recv_match()
+
+    if msg is None:
+        break
+
+    if msg.get_type() == "NTUN":
+        NTUN_Data.append([
+            msg.TimeUS,
+            msg.Dist,
+            msg.TBrg,
+            msg.NavBrg,
+            msg.AltE,
+            msg.XT,
+            msg.XTi,
+            msg.AsE,
+            msg.TLat,
+            msg.TLng,
+            msg.TAW,
+            msg.TAT,
+            msg.TAsp
+        ])
+
+# For Navigation TECS
+TECS_Data = []
+
+flight_log = mavutil.mavlink_connection(flight_log_path)
+
+while True:
+    msg = flight_log.recv_match()
+
+    if msg is None:
+        break
+
+    if msg.get_type() == "TECS":
+        TECS_Data.append([
+            msg.TimeUS,
+            msg.h,
+            msg.dh,
+            msg.hin,
+            msg.hdem,
+            msg.dhdem,
+            msg.spdem,
+            msg.sp,
+            msg.dsp,
+            msg.th,
+            msg.ph,
+            msg.pmin,
+            msg.pmax,
+            msg.dspdem
+        ])
+
+# For Power BAT
+BAT_Data = []
+
+flight_log = mavutil.mavlink_connection(flight_log_path)
+
+while True:
+    msg = flight_log.recv_match()
+
+    if msg is None:
+        break
+
+    if msg.get_type() == "BAT":
+        BAT_Data.append([
+            msg.TimeUS,
+            msg.Instance,
+            msg.Volt,
+            msg.Curr,
+            msg.CurrTot,
+            msg.EnrgTot,
+            msg.Temp,
+            msg.Res
+        ])
+
+
 GPS_Timed = time_match(
     Master_Time_Axis,
     GPS_Data,
@@ -382,6 +558,48 @@ BARO_Timed = time_match(
     BARO_Data,
     tol,
     11
+)
+
+XKF1_Timed = time_match(
+    Master_Time_Axis,
+    XKF1_Data,
+    tol,
+    15
+)
+
+XKF2_Timed = time_match(
+    Master_Time_Axis,
+    XKF2_Data,
+    tol,
+    15
+)
+
+XKF3_Timed = time_match(
+    Master_Time_Axis,
+    XKF3_Data,
+    tol,
+    14
+)
+
+NTUN_Timed = time_match(
+    Master_Time_Axis,
+    NTUN_Data,
+    tol,
+    12
+)
+
+TECS_Timed = time_match(
+    Master_Time_Axis,
+    TECS_Data,
+    tol,
+    13
+)
+
+BAT_Timed = time_match(
+    Master_Time_Axis,
+    BAT_Data,
+    tol,
+    7
 )
 
 with open(os.path.join(output_dir, "attitude.csv"), "w", newline="") as file:
@@ -505,6 +723,138 @@ with open(os.path.join(output_dir, "sensors.csv"), "w", newline="") as file:
 
         writer.writerow(row)
 
+with open(os.path.join(output_dir, "ekf.csv"), "w", newline="") as file:
+
+    writer = csv.writer(file)
+
+    writer.writerow([
+        "Time",
+
+        "XKF1_C",
+        "XKF1_Roll",
+        "XKF1_Pitch",
+        "XKF1_Yaw",
+        "XKF1_VN",
+        "XKF1_VE",
+        "XKF1_VD",
+        "XKF1_dPD",
+        "XKF1_PN",
+        "XKF1_PE",
+        "XKF1_PD",
+        "XKF1_GX",
+        "XKF1_GY",
+        "XKF1_GZ",
+        "XKF1_OH",
+
+        "XKF2_C",
+        "XKF2_AX",
+        "XKF2_AY",
+        "XKF2_AZ",
+        "XKF2_VWN",
+        "XKF2_VWE",
+        "XKF2_MN",
+        "XKF2_ME",
+        "XKF2_MD",
+        "XKF2_MX",
+        "XKF2_MY",
+        "XKF2_MZ",
+        "XKF2_IDX",
+        "XKF2_IDY",
+        "XKF2_IS",
+
+        "XKF3_C",
+        "XKF3_IVN",
+        "XKF3_IVE",
+        "XKF3_IVD",
+        "XKF3_IPN",
+        "XKF3_IPE",
+        "XKF3_IPD",
+        "XKF3_IMX",
+        "XKF3_IMY",
+        "XKF3_IMZ",
+        "XKF3_IYAW",
+        "XKF3_IVT",
+        "XKF3_RErr",
+        "XKF3_ErSc"
+    ])
+
+    for i in range(len(Master_Time_Axis)):
+
+        row = [Time_Axis[i]]
+
+        row.extend(XKF1_Timed[i][1:])
+        row.extend(XKF2_Timed[i][1:])
+        row.extend(XKF3_Timed[i][1:])
+
+        writer.writerow(row)
+
+with open(os.path.join(output_dir, "navigation.csv"), "w", newline="") as file:
+
+    writer = csv.writer(file)
+
+    writer.writerow([
+        "Time",
+
+        "NTUN_Dist",
+        "NTUN_TBrg",
+        "NTUN_NavBrg",
+        "NTUN_AltE",
+        "NTUN_XT",
+        "NTUN_XTi",
+        "NTUN_AsE",
+        "NTUN_TLat",
+        "NTUN_TLng",
+        "NTUN_TAW",
+        "NTUN_TAT",
+        "NTUN_TAsp",
+
+        "TECS_h",
+        "TECS_dh",
+        "TECS_hin",
+        "TECS_hdem",
+        "TECS_dhdem",
+        "TECS_spdem",
+        "TECS_sp",
+        "TECS_dsp",
+        "TECS_th",
+        "TECS_ph",
+        "TECS_pmin",
+        "TECS_pmax",
+        "TECS_dspdem"
+    ])
+
+    for i in range(len(Master_Time_Axis)):
+
+        row = [Time_Axis[i]]
+
+        row.extend(NTUN_Timed[i][1:])
+        row.extend(TECS_Timed[i][1:])
+
+        writer.writerow(row)
+
+with open(os.path.join(output_dir, "power.csv"), "w", newline="") as file:
+
+    writer = csv.writer(file)
+
+    writer.writerow([
+        "Time",
+        "BAT_Instance",
+        "BAT_Volt",
+        "BAT_Curr",
+        "BAT_CurrTot",
+        "BAT_EnrgTot",
+        "BAT_Temp",
+        "BAT_Res"
+    ])
+
+    for i in range(len(Master_Time_Axis)):
+
+        row = [Time_Axis[i]]
+
+        row.extend(BAT_Timed[i][1:])
+
+        writer.writerow(row)
+
 print("CSV files written to:", output_dir)
 
 print("ATT:", len(Attitude_Timed))
@@ -514,3 +864,9 @@ print("RCOU:", len(RCOU_Timed))
 print("VIBE:", len(VIBE_Timed))
 print("MAG:", len(MAG_Timed))
 print("BARO:", len(BARO_Timed))
+print("XKF1:", len(XKF1_Timed))
+print("XKF2:", len(XKF2_Timed))
+print("XKF3:", len(XKF3_Timed))
+print("NTUN:", len(NTUN_Timed))
+print("TECS:", len(TECS_Timed))
+print("BAT:", len(BAT_Timed))
