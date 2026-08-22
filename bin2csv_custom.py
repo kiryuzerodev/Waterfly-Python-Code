@@ -2,10 +2,16 @@
 from pymavlink import mavutil
 import csv
 import os
+import sys
 
 
 # Where the log is
-flight_log_path = "/home/kiryuzerodev/Downloads/Waterfly Test Flights/18 Aug Flight Test at 13_49hrs.bin"
+if len(sys.argv) < 2:
+    print("Usage: python bin2csv_custom.py <flight_log.bin>")
+    exit(1)
+
+flight_log_path = sys.argv[1]
+file_name = os.path.splitext(os.path.basename(flight_log_path))[0]
 
 # Create the output directory
 output_dir = "flight_csv"
@@ -143,7 +149,7 @@ j = 0 # Data time
 # When there is no close value, we put NaN. This can be
 # detected by the fact that if the data point time increases
 # and master time is still way back, it means there is no
-# matching timestamp and we will proceed to the next one
+# matching timestamp, and we will proceed to the next one
 
 #Replaced with a function
 Attitude_Timed = time_match(
@@ -602,7 +608,7 @@ BAT_Timed = time_match(
     7
 )
 
-with open(os.path.join(output_dir, "attitude.csv"), "w", newline="") as file:
+with open(os.path.join(output_dir, f"Attitude_{file_name}.csv"), "w", newline="") as file:
 
     writer = csv.writer(file)
 
@@ -624,7 +630,7 @@ with open(os.path.join(output_dir, "attitude.csv"), "w", newline="") as file:
 
         writer.writerow(row)
 
-with open(os.path.join(output_dir, "gps.csv"), "w", newline="") as file:
+with open(os.path.join(output_dir, f"GPS_{file_name}.csv"), "w", newline="") as file:
 
     writer = csv.writer(file)
 
@@ -650,7 +656,7 @@ with open(os.path.join(output_dir, "gps.csv"), "w", newline="") as file:
 
         writer.writerow(row)
 
-with open(os.path.join(output_dir, "controls.csv"), "w", newline="") as file:
+with open(os.path.join(output_dir, f"Controls_{file_name}.csv"), "w", newline="") as file:
 
     writer = csv.writer(file)
 
@@ -675,7 +681,7 @@ with open(os.path.join(output_dir, "controls.csv"), "w", newline="") as file:
 
         writer.writerow(row)
 
-with open(os.path.join(output_dir, "sensors.csv"), "w", newline="") as file:
+with open(os.path.join(output_dir, f"Sensors_{file_name}.csv"), "w", newline="") as file:
 
     writer = csv.writer(file)
 
@@ -723,7 +729,7 @@ with open(os.path.join(output_dir, "sensors.csv"), "w", newline="") as file:
 
         writer.writerow(row)
 
-with open(os.path.join(output_dir, "ekf.csv"), "w", newline="") as file:
+with open(os.path.join(output_dir, f"EKF_{file_name}.csv"), "w", newline="") as file:
 
     writer = csv.writer(file)
 
@@ -788,7 +794,7 @@ with open(os.path.join(output_dir, "ekf.csv"), "w", newline="") as file:
 
         writer.writerow(row)
 
-with open(os.path.join(output_dir, "navigation.csv"), "w", newline="") as file:
+with open(os.path.join(output_dir, f"Navigation_{file_name}.csv"), "w", newline="") as file:
 
     writer = csv.writer(file)
 
@@ -832,7 +838,7 @@ with open(os.path.join(output_dir, "navigation.csv"), "w", newline="") as file:
 
         writer.writerow(row)
 
-with open(os.path.join(output_dir, "power.csv"), "w", newline="") as file:
+with open(os.path.join(output_dir, f"Power_{file_name}.csv"), "w", newline="") as file:
 
     writer = csv.writer(file)
 
