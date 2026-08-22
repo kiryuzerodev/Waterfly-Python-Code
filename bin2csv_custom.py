@@ -351,6 +351,24 @@ while True:
             msg.C14
         ])
 
+# For FLIGHT MODE
+MODE_Data = []
+
+flight_log = mavutil.mavlink_connection(flight_log_path)
+
+while True:
+    msg = flight_log.recv_match()
+
+    if msg is None:
+        break
+
+    if msg.get_type() == "MODE":
+        MODE_Data.append([
+            msg.TimeUS,
+            msg.Mode,
+            msg.ModeNum
+        ])
+
 # For EKF XKF1
 XKF1_Data = []
 
@@ -608,6 +626,13 @@ BAT_Timed = time_match(
     7
 )
 
+MODE_Timed = time_match(
+    Master_Time_Axis,
+    MODE_Data,
+    tol,
+    2
+)
+
 with open(os.path.join(output_dir, f"Attitude_{file_name}.csv"), "w", newline="") as file:
 
     writer = csv.writer(file)
@@ -669,7 +694,9 @@ with open(os.path.join(output_dir, f"Controls_{file_name}.csv"), "w", newline=""
         "RCOU_C1", "RCOU_C2", "RCOU_C3", "RCOU_C4",
         "RCOU_C5", "RCOU_C6", "RCOU_C7", "RCOU_C8",
         "RCOU_C9", "RCOU_C10", "RCOU_C11", "RCOU_C12",
-        "RCOU_C13", "RCOU_C14"
+        "RCOU_C13", "RCOU_C14",
+        "Mode",
+        "ModeNum"
     ])
 
     for i in range(len(Master_Time_Axis)):
@@ -678,6 +705,7 @@ with open(os.path.join(output_dir, f"Controls_{file_name}.csv"), "w", newline=""
 
         row.extend(RCIN_Timed[i][1:])
         row.extend(RCOU_Timed[i][1:])
+        row.extend(MODE_Timed[i][1:])
 
         writer.writerow(row)
 
@@ -867,6 +895,8 @@ print("ATT:", len(Attitude_Timed))
 print("GPS:", len(GPS_Timed))
 print("RCIN:", len(RCIN_Timed))
 print("RCOU:", len(RCOU_Timed))
+print("MODE:", len(MODE_Data))
+print("MODE timed:", len(MODE_Timed))
 print("VIBE:", len(VIBE_Timed))
 print("MAG:", len(MAG_Timed))
 print("BARO:", len(BARO_Timed))
