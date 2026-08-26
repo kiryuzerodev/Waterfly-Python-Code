@@ -14,7 +14,7 @@ flight_log_path = sys.argv[1]
 file_name = os.path.splitext(os.path.basename(flight_log_path))[0]
 
 # Create the output directory
-output_dir = "flight_csv"
+output_dir = os.path.join("flight_csv", file_name)
 
 os.makedirs(output_dir, exist_ok=True)
 
@@ -906,3 +906,208 @@ print("XKF3:", len(XKF3_Timed))
 print("NTUN:", len(NTUN_Timed))
 print("TECS:", len(TECS_Timed))
 print("BAT:", len(BAT_Timed))
+
+with open(os.path.join(output_dir, f"FlightData_{file_name}.csv"), "w", newline="") as file:
+
+    writer = csv.writer(file)
+
+    writer.writerow([
+        "Time",
+
+        "DesRoll",
+        "DesPitch",
+        "DesYaw",
+        "Roll",
+        "Pitch",
+        "Yaw",
+
+        "GPS_Status",
+        "GPS_NSats",
+        "GPS_HDop",
+        "GPS_Lat",
+        "GPS_Lng",
+        "GPS_Alt",
+        "GPS_Spd",
+        "GPS_GCrs",
+        "GPS_VZ",
+        "GPS_Yaw",
+
+        "RCIN_C1",
+        "RCIN_C2",
+        "RCIN_C3",
+        "RCIN_C4",
+        "RCIN_C5",
+        "RCIN_C6",
+        "RCIN_C7",
+        "RCIN_C8",
+        "RCIN_C9",
+        "RCIN_C10",
+        "RCIN_C11",
+        "RCIN_C12",
+        "RCIN_C13",
+        "RCIN_C14",
+
+        "RCOU_C1",
+        "RCOU_C2",
+        "RCOU_C3",
+        "RCOU_C4",
+        "RCOU_C5",
+        "RCOU_C6",
+        "RCOU_C7",
+        "RCOU_C8",
+        "RCOU_C9",
+        "RCOU_C10",
+        "RCOU_C11",
+        "RCOU_C12",
+        "RCOU_C13",
+        "RCOU_C14",
+
+        "Mode",
+        "ModeNum",
+
+        "VIBE_IMU",
+        "VibeX",
+        "VibeY",
+        "VibeZ",
+        "Clip",
+
+        "MAG_I",
+        "MagX",
+        "MagY",
+        "MagZ",
+        "OfsX",
+        "OfsY",
+        "OfsZ",
+        "MOX",
+        "MOY",
+        "MOZ",
+        "MAG_Health",
+
+        "BARO_I",
+        "BaroAlt",
+        "AltAMSL",
+        "Press",
+        "Temp",
+        "CRt",
+        "SMS",
+        "Offset",
+        "GndTemp",
+        "H",
+        "CPress",
+
+        "XKF1_C",
+        "XKF1_Roll",
+        "XKF1_Pitch",
+        "XKF1_Yaw",
+        "XKF1_VN",
+        "XKF1_VE",
+        "XKF1_VD",
+        "XKF1_dPD",
+        "XKF1_PN",
+        "XKF1_PE",
+        "XKF1_PD",
+        "XKF1_GX",
+        "XKF1_GY",
+        "XKF1_GZ",
+        "XKF1_OH",
+
+        "XKF2_C",
+        "XKF2_AX",
+        "XKF2_AY",
+        "XKF2_AZ",
+        "XKF2_VWN",
+        "XKF2_VWE",
+        "XKF2_MN",
+        "XKF2_ME",
+        "XKF2_MD",
+        "XKF2_MX",
+        "XKF2_MY",
+        "XKF2_MZ",
+        "XKF2_IDX",
+        "XKF2_IDY",
+        "XKF2_IS",
+
+        "XKF3_C",
+        "XKF3_IVN",
+        "XKF3_IVE",
+        "XKF3_IVD",
+        "XKF3_IPN",
+        "XKF3_IPE",
+        "XKF3_IPD",
+        "XKF3_IMX",
+        "XKF3_IMY",
+        "XKF3_IMZ",
+        "XKF3_IYAW",
+        "XKF3_IVT",
+        "XKF3_RErr",
+        "XKF3_ErSc",
+
+        "NTUN_Dist",
+        "NTUN_TBrg",
+        "NTUN_NavBrg",
+        "NTUN_AltE",
+        "NTUN_XT",
+        "NTUN_XTi",
+        "NTUN_AsE",
+        "NTUN_TLat",
+        "NTUN_TLng",
+        "NTUN_TAW",
+        "NTUN_TAT",
+        "NTUN_TAsp",
+
+        "TECS_h",
+        "TECS_dh",
+        "TECS_hin",
+        "TECS_hdem",
+        "TECS_dhdem",
+        "TECS_spdem",
+        "TECS_sp",
+        "TECS_dsp",
+        "TECS_th",
+        "TECS_ph",
+        "TECS_pmin",
+        "TECS_pmax",
+        "TECS_dspdem",
+
+        "BAT_Instance",
+        "BAT_Volt",
+        "BAT_Curr",
+        "BAT_CurrTot",
+        "BAT_EnrgTot",
+        "BAT_Temp",
+        "BAT_Res"
+    ])
+
+    for i in range(len(Master_Time_Axis)):
+
+        row = [Time_Axis[i]]
+
+        row.extend(Attitude_Timed[i][1:])
+
+        row.extend(GPS_Timed[i][1:])
+
+        row.extend(RCIN_Timed[i][1:])
+
+        row.extend(RCOU_Timed[i][1:])
+
+        row.extend(MODE_Timed[i][1:])
+
+        row.extend(VIBE_Timed[i][1:])
+
+        row.extend(MAG_Timed[i][1:])
+
+        row.extend(BARO_Timed[i][1:])
+
+        row.extend(XKF1_Timed[i][1:])
+
+        row.extend(XKF2_Timed[i][1:])
+
+        row.extend(XKF3_Timed[i][1:])
+
+        row.extend(NTUN_Timed[i][1:])
+
+        row.extend(TECS_Timed[i][1:])
+
+        row.extend(BAT_Timed[i][1:])
+
+        writer.writerow(row)
