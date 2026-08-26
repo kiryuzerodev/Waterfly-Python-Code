@@ -541,6 +541,56 @@ while True:
             msg.Res
         ])
 
+# For MISSION COMMANDS
+CMD_Data = []
+
+flight_log = mavutil.mavlink_connection(flight_log_path)
+
+while True:
+    msg = flight_log.recv_match()
+
+    if msg is None:
+        break
+
+    if msg.get_type() == "CMD":
+        CMD_Data.append([
+            msg.TimeUS,
+            msg.CTot,
+            msg.CNum,
+            msg.CId,
+            msg.Prm1,
+            msg.Prm2,
+            msg.Prm3,
+            msg.Prm4,
+            msg.Lat,
+            msg.Lng,
+            msg.Alt,
+            msg.Frame
+        ])
+
+
+# For GEO FENCE
+FNCE_Data = []
+
+flight_log = mavutil.mavlink_connection(flight_log_path)
+
+while True:
+    msg = flight_log.recv_match()
+
+    if msg is None:
+        break
+
+    if msg.get_type() == "FNCE":
+        FNCE_Data.append([
+            msg.TimeUS,
+            msg.Tot,
+            msg.Seq,
+            msg.Type,
+            msg.Lat,
+            msg.Lng,
+            msg.Count,
+            msg.Radius
+        ])
 
 GPS_Timed = time_match(
     Master_Time_Axis,
@@ -888,6 +938,89 @@ with open(os.path.join(output_dir, f"Power_{file_name}.csv"), "w", newline="") a
         row.extend(BAT_Timed[i][1:])
 
         writer.writerow(row)
+
+# Write mission commands only if they exist
+if len(CMD_Data) > 0:
+
+    with open(os.path.join(output_dir, f"Mission_{file_name}.csv"), "w", newline="") as file:
+
+        writer = csv.writer(file)
+
+        writer.writerow([
+            "Time",
+            "TotalCommands",
+            "CommandNumber",
+            "CommandID",
+            "Prm1",
+            "Prm2",
+            "Prm3",
+            "Prm4",
+            "Latitude",
+            "Longitude",
+            "Altitude",
+            "Frame"
+        ])
+
+        for row in CMD_Data:
+
+            writer.writerow([
+                (row[0] - Master_Time_Axis[0]) / 1_000_000,
+                row[1],
+                row[2],
+                row[3],
+                row[4],
+                row[5],
+                row[6],
+                row[7],
+                row[8],
+                row[9],
+                row[10],
+                row[11]
+            ])
+
+    print("Mission:", len(CMD_Data))
+
+else:
+
+    print("Mission: not found - skipped")
+
+
+# Write geofence only if it exists
+if len(FNCE_Data) > 0:
+
+    with open(os.path.join(output_dir, f"GeoFence_{file_name}.csv"), "w", newline="") as file:
+
+        writer = csv.writer(file)
+
+        writer.writerow([
+            "Time",
+            "TotalPoints",
+            "Sequence",
+            "Type",
+            "Latitude",
+            "Longitude",
+            "Count",
+            "Radius"
+        ])
+
+        for row in FNCE_Data:
+
+            writer.writerow([
+                (row[0] - Master_Time_Axis[0]) / 1_000_000,
+                row[1],
+                row[2],
+                row[3],
+                row[4],
+                row[5],
+                row[6],
+                row[7]
+            ])
+
+    print("GeoFence:", len(FNCE_Data))
+
+else:
+
+    print("GeoFence: not found - skipped")
 
 print("CSV files written to:", output_dir)
 
