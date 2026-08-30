@@ -1076,6 +1076,7 @@ else:
 
     print("GeoFence: not found - skipped")
 
+#diagonostics
 print("CSV files written to:", output_dir)
 
 print("ATT:", len(Attitude_Timed))
