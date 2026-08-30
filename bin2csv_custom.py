@@ -591,6 +591,28 @@ while True:
             msg.Count,
             msg.Radius
         ])
+# For IMU
+IMU_Data = []
+
+flight_log = mavutil.mavlink_connection(flight_log_path)
+
+while True:
+    msg = flight_log.recv_match()
+
+    if msg is None:
+        break
+
+    if msg.get_type() == "IMU":
+        if msg.I == 0:
+            IMU_Data.append([
+                msg.TimeUS,
+                msg.GyrX,
+                msg.GyrY,
+                msg.GyrZ,
+                msg.AccX,
+                msg.AccY,
+                msg.AccZ
+            ])
 
 GPS_Timed = time_match(
     Master_Time_Axis,
@@ -681,6 +703,13 @@ MODE_Timed = time_match(
     MODE_Data,
     tol,
     2
+)
+
+IMU_Timed = time_match(
+    Master_Time_Axis,
+    IMU_Data,
+    tol,
+    6
 )
 
 with open(os.path.join(output_dir, f"Attitude_{file_name}.csv"), "w", newline="") as file:
@@ -939,6 +968,31 @@ with open(os.path.join(output_dir, f"Power_{file_name}.csv"), "w", newline="") a
 
         writer.writerow(row)
 
+
+# For IMU related
+with open(os.path.join(output_dir, f"IMU_{file_name}.csv"), "w", newline="") as file:
+
+    writer = csv.writer(file)
+
+    writer.writerow([
+        "Time",
+        "GyrX",
+        "GyrY",
+        "GyrZ",
+        "AccX",
+        "AccY",
+        "AccZ"
+    ])
+
+    for i in range(len(Master_Time_Axis)):
+
+        row = IMU_Timed[i].copy()
+
+        row[0] = Time_Axis[i]
+
+        writer.writerow(row)
+
+
 # Write mission commands only if they exist
 if len(CMD_Data) > 0:
 
@@ -1039,6 +1093,8 @@ print("XKF3:", len(XKF3_Timed))
 print("NTUN:", len(NTUN_Timed))
 print("TECS:", len(TECS_Timed))
 print("BAT:", len(BAT_Timed))
+print("IMU:", len(IMU_Data))
+print("IMU timed:", len(IMU_Timed))
 
 with open(os.path.join(output_dir, f"FlightData_{file_name}.csv"), "w", newline="") as file:
 
