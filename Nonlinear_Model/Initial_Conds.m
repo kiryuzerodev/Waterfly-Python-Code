@@ -118,3 +118,17 @@ tEnd   = 75;             % Simulation end time [s]
 % ================================================================
 
 sim('Aircraft_Model.slx');
+
+
+%% ==============================================================
+% CALCULATE THE JACOBIAN NUMERICALLY TO GET A AND B MATRICES
+% ==============================================================
+
+[A_state,B_input] = NumericalJacobian(x0,U0);
+
+
+disp("State Jacobian A:");
+disp(A_state);
+disp("Input Jacobian B:");
+disp(B_input);
+

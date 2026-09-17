@@ -146,7 +146,7 @@ Cl_deltaR = 0.0175;     % Rolling-moment derivative wrt rudder [1/rad]
 Cn_beta   = 0.1434;     % Yawing-moment derivative wrt sideslip [1/rad]
 
 Cn_pHat   = 0.0227;     % Yawing moment derivative wrt pHat [-]
-Cn_rHat   = 0.0649;     % Yaw damping derivative wrt rHat [-]
+Cn_rHat   = -0.0649;     % Yaw damping derivative wrt rHat [-]
 
 Cn_deltaA = 0.0014;     % Yawing-moment derivative wrt aileron [1/rad]
 Cn_deltaR = -0.0698;    % Yawing-moment derivative wrt rudder [1/rad]
