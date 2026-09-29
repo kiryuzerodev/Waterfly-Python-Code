@@ -1,6 +1,7 @@
 #This Python script will create the waypoints for a low ground effect flight, for a given altitude.
 #You must calculate the h/b or h/c ratio manually.
 #It also takes 4 inputs, 2+ve and 2-ve percentages which denote the step change in altitude to be executed. A value of zero skips the step change
+from turtle import distance
 
 from pymavlink import mavutil, mavwp
 import math
@@ -183,24 +184,26 @@ east_track = -wp_dist - test_deviation
 # The Racetrack type flight plan
 index_step = 0
 temp_message = ""
+along_cursor = takeoff_dist
 for i in range(test_runs):
     alt = test_alt[i]
     dist = test_distance[i]
     up_step, down_step = test_step_percent[i] # extracts the entire row and gives it's columns to the members - **Python**
     has_step = (up_step > 0) or (down_step > 0) # Check if a step disturbance was ordered by the user
-    time_step = test_step_duration[i] if has_step else 0.0
+    time_step = test_step_duration[index_step] if has_step else 0.0 # Looks like [2 0 1 2] based on times and no disturbance passes
+    # meaning test_step_duration is not the same as test_runs index
     if has_step:
         index_step = index_step + 1
 
         # Printing some shit
         print(f"Step Disturbance for Test Run {i+1} has been received!")
         print("Details are as follows:")
-        temp_message = "Positive Step" if test_step_duration[0][i] > 0 else ""
+        temp_message = "Positive Step" if test_step_percent[0][i] > 0 else ""
         temp_step = up_step if up_step > 0 else down_step
-        if test_step_duration[0][i] > 0 and test_step_duration[1][i]:
+        if test_step_percent[0][i] > 0 and test_step_percent[1][i]:
             print("Both side step")
         print(f"{temp_message}: {temp_step}")
-        temp_message = "Negative Step" if test_step_duration[1][i] > 0 else ""
+        temp_message = "Negative Step" if test_step_percent[1][i] > 0 else ""
         temp_step = down_step if down_step > 0 else up_step
         print(f"{temp_message}: {temp_step}")
         print("~~~Zero means no step~~~")
@@ -208,6 +211,53 @@ for i in range(test_runs):
         # To check direction - if it is -ve then it gets multiplied to change which way we are pointing
         track = west_track if i % 2 == 0 else east_track
         direction = -1 if i % 2 == 0 else +1
+        settle_dist = 7.5*cruise_speed  # Settle for 7.5s before performing a step disturbance
+        step_dist = time_step*cruise_speed # Distance of the step
+        needed_dist = settle_dist + ((step_dist+settle_dist) if up_step > 0 else 0) + ((step_dist+settle_dist) if down_step > 0 else 0)
+        if needed_dist > dist:
+            print(
+                f"WARNING Test {i + 1}: distance {dist:.0f} m too short for the steps ({needed_dist:.0f} m needed) - extending")
+            dist = needed_dist + settle_dist*2
 
+        # LOITER-TO-ALT and start the process
+        start = along_cursor
+        lat,lng = point(start,track)
+        add_waypoint(mav.MAV_CMD_NAV_LOITER_TO_ALT, lat,lng,alt,p2 = loiter_radius, p4=1)
 
+        # The main run
+        pos = start + (direction*dist)
+        if up_step > 0:
+            # We are putting one waypoint on top in the path and then after the distance, it is set back
+            lat,lng = point(pos,track)
+            pos = pos + (direction*step_dist)
+            add_waypoint(mav.MAV_CMD_NAV_WAYPOINT, lat, lng, alt*(1+up_step / 100.0))
+            lat, lng = point(pos, track)
+            add_waypoint(mav.MAV_CMD_NAV_WAYPOINT, lat, lng, alt)
+            pos = pos +(direction*settle_dist)
+        if down_step > 0:
+            lat, lng = point(pos, track)
+            pos = pos + (direction * step_dist)
+            add_waypoint(mav.MAV_CMD_NAV_WAYPOINT, lat, lng, alt * (1 + up_step / 100.0))
+            lat, lng = point(pos, track)
+            add_waypoint(mav.MAV_CMD_NAV_WAYPOINT, lat, lng, alt)
+            pos = pos + (direction * settle_dist)
+        end = start + (direction*dist)
+        lat,lng = point(end,track)
+        add_waypoint(mav.MAV_CMD_NAV_LOITER_TO_ALT, lat, lng, test_loiter_to_alt, p2=loiter_radius, p4=1)
 
+        # NEW: Add a buffer at the end in case there are some overshoots still present
+        buffer_along = end + (direction* wp_dist)
+        lat, lng = point(buffer_along, track)
+        add_waypoint(mav.MAV_CMD_NAV_WAYPOINT, lat, lng, wp_alt)
+
+        # Direction change
+        if i < test_runs - 1:
+            other_track = east_track if track == west_track else west_track
+            lat, lng = point(buffer_along, other_track);
+            add_waypoint(mav.MAV_CMD_NAV_WAYPOINT, lat, lng, wp_alt)
+            along_cursor = buffer_along
+lat, lng = point(takeoff_dist + 2 * wp_dist, 0.0)
+add_waypoint(mav.MAV_CMD_NAV_WAYPOINT, lat, lng, wp_alt)
+add_waypoint(mav.MAV_CMD_NAV_LAND, home_lat, home_lng, 0)
+
+## Ending the Mission
