@@ -260,4 +260,24 @@ lat, lng = point(takeoff_dist + 2 * wp_dist, 0.0)
 add_waypoint(mav.MAV_CMD_NAV_WAYPOINT, lat, lng, wp_alt)
 add_waypoint(mav.MAV_CMD_NAV_LAND, home_lat, home_lng, 0)
 
-## Ending the Mission
+## Run the Mission and then End it once landed  - AI GENERATED
+m.waypoint_clear_all_send()
+m.waypoint_count_send(wp.count())
+for _ in range(wp.count()):
+    req = m.recv_match(type=['MISSION_REQUEST', 'MISSION_REQUEST_INT'], blocking=True, timeout=10)
+    m.mav.send(wp.wp(req.seq))
+m.recv_match(type='MISSION_ACK', blocking=True, timeout=10)
+
+m.arducopter_arm()
+m.motors_armed_wait()
+m.set_mode('AUTO')
+print("The test is now running! Go for a stroll")
+
+while m.motors_armed():
+    m.recv_match(type='HEARTBEAT', blocking=True, timeout=5)
+print("Your plane has landed successfullay")
+
+log_dir = os.path.expanduser("~/ardupilot/ArduPlane/logs")
+log_num = int(open(f"{log_dir}/LASTLOG.TXT").read().strip())
+os.system("pkill -f arduplane; pkill -f mavproxy; pkill -f JSBSim")
+print(f"Log file: {log_dir}/{log_num:08d}.BIN")
