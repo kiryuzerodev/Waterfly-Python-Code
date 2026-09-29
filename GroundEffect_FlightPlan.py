@@ -237,7 +237,7 @@ for i in range(test_runs):
         if down_step > 0:
             lat, lng = point(pos, track)
             pos = pos + (direction * step_dist)
-            add_waypoint(mav.MAV_CMD_NAV_WAYPOINT, lat, lng, alt * (1 + up_step / 100.0))
+            add_waypoint(mav.MAV_CMD_NAV_WAYPOINT, lat, lng, alt * (1 + down_step / 100.0))
             lat, lng = point(pos, track)
             add_waypoint(mav.MAV_CMD_NAV_WAYPOINT, lat, lng, alt)
             pos = pos + (direction * settle_dist)
