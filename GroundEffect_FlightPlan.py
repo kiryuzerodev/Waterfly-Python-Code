@@ -71,7 +71,7 @@ print("P.P.S I am not a great programmer :(")
 print("")
 print("All test flights are from Waterfly Warehouse")
 print("")
-print("All disturbances are started after 15s of test run commencing")
+print("All disturbances are started after 30s of test run commencing")
 print("---------------------------------------------------")
 
 print("Enter the required number of test runs")
@@ -137,11 +137,14 @@ test_deviation = float(input())
 print("Enter LOITER-TO-ALT (m) before and after every test run")
 test_loiter_to_alt = abs(float(input()))
 
+print("Enter LOITER-TO-ALT height ABOVE each test altitude (m) - min 15, 20 recommended")
+loiter_above = max(15.0, abs(float(input())))
+test_loiter_to_alt = max(test_alt) + loiter_above      # only used for wp_buffer_alt now
 ##################### MAV LINK COMMANDS ##############################
 
 
 wp_dist = 150 # Distance between waypoints
-wp_buffer_alt = test_loiter_to_alt+25 # We will be flying to this altitude to prepare for the nexy test
+wp_buffer_alt = test_loiter_to_alt # We will be flying to this altitude to prepare for the nexy test
 home_lat = 12.886097191929261
 home_lng = 79.8657674964945
 home_alt = 0.0  # Waterfly Warehouse points
@@ -231,13 +234,14 @@ for i in range(test_runs):
 
     # To check direction - if it is -ve then it gets multiplied to change which way we are pointing
     deviateFlag = True if i%2 == 0 else False  # Use
-    settle_dist = 15*cruise_speed  # Settle for 15s before performing a step disturbance
+    settle_dist = 30*cruise_speed  # Settle for 30s before performing a step disturbance
     step_dist = time_step*cruise_speed # Distance of the step
     needed_dist = settle_dist + ((step_dist+settle_dist) if up_step > 0 else 0) + ((step_dist+settle_dist) if down_step > 0 else 0)
     if needed_dist > test.distance + settle_dist*2:
         print(
             f"WARNING Test {i+1}: distance {test.distance:.0f} m too short for the steps ({needed_dist:.0f} m needed) - extending")
         test.distance = needed_dist + settle_dist*2 + 10 # the 10 is there just in case to avoid tailstrikes
+    curr.alt = test.alt + loiter_above
 
     # LOITER-TO-ALT and start the process to first settle the aircraft
     curr.alt = test_loiter_to_alt
