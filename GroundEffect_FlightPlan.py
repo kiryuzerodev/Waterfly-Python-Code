@@ -183,28 +183,30 @@ add_waypoint(mav.MAV_CMD_NAV_WAYPOINT,curr.lat,curr.lng,curr.alt,frame=mav.MAV_F
 add_waypoint(mav.MAV_CMD_NAV_TAKEOFF,0,0,curr.alt,p1=12)
 
 # The main stuff
+# We are going some meters ahead from the takeoff point and then telling it to fly this altitude
+curr.lat, curr.lng = wp_dist2latlng(curr.lat, curr.lng, curr.hdg, takeoff_dist)
+add_waypoint(mav.MAV_CMD_NAV_WAYPOINT, curr.lat, curr.lng, wp_buffer_alt)
+# To turn left after reaching the waypoint
+curr.hdg = turn_left(curr.hdg)
+curr.lat, curr.lng = wp_dist2latlng(curr.lat, curr.lng, curr.hdg, wp_dist)
+curr.alt = test_loiter_to_alt
+add_waypoint(mav.MAV_CMD_NAV_WAYPOINT, curr.lat, curr.lng, wp_buffer_alt)
+curr.hdg = turn_left(curr.hdg)
 
+# test start ..X... X <- here now
+#                   |
+#                   |
+# H ----------------X
 # The Racetrack type flight plan
+
+
 index_step = 0
 temp_message = ""
 test = LatLongHead()
 deviateFlag = False  # A flag that becomes true after an even test so that the track deviates slightly
                      # prevents multiple tests happening over the same region
 for i in range(test_runs):
-    # We are going some meters ahead from the takeoff point and then telling it to fly this altitude
-    curr.lat, curr.lng = wp_dist2latlng(curr.lat, curr.lng, curr.hdg, takeoff_dist)
-    add_waypoint(mav.MAV_CMD_NAV_WAYPOINT, curr.lat, curr.lng, wp_buffer_alt)
-    # To turn left after reaching the waypoint
-    curr.hdg = turn_left(curr.hdg)
-    curr.lat, curr.lng = wp_dist2latlng(curr.lat, curr.lng, curr.hdg, wp_dist)
-    curr.alt = test_loiter_to_alt
-    add_waypoint(mav.MAV_CMD_NAV_WAYPOINT, curr.lat, curr.lng, wp_buffer_alt)
-    curr.hdg = turn_left(curr.hdg)
 
-    # test start ..X... X <- here now
-    #                   |
-    #                   |
-    # H ----------------X
     test.alt = test_alt[i]
     test.distance = test_distance[i]
     up_step, down_step = test_step_percent[i] # extracts the entire row and gives it's columns to the members - **Python**
