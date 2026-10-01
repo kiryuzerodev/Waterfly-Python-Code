@@ -290,7 +290,7 @@ for i in range(test_runs):
         test.distance = test.distance - curr.distance
 
     # Here is where the test run has completed - mark the final waypoint!
-    curr.distance = test.distance
+    curr.distance = max(test.distance,10)
     curr.alt = test.alt
     curr.lat, curr.lng = wp_dist2latlng(curr.lat, curr.lng, curr.hdg, curr.distance)
     add_waypoint(mav.MAV_CMD_NAV_WAYPOINT, curr.lat, curr.lng, curr.alt)
