@@ -5,7 +5,6 @@
 
 from pymavlink import mavutil, mavwp
 import math
-import time
 import os
 # Predefinition - for scope related issues
 mav = mavutil.mavlink
