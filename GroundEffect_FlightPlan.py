@@ -36,13 +36,9 @@ def wp_dist2latlng(curr_lat,curr_long,curr_head,next_dist):
 
     return math.degrees(lat2), math.degrees(lon2)
 
-def turn_left(hdg):  return (hdg - 90.0) % 360.0
-def reverse(hdg):    return (hdg + 180.0) % 360.0
+def turn_left(hdg):
+    return (hdg - 90.0) % 360.0
 
-def point(along, right):
-    """along = metres down the runway heading from home, right = metres to its right (east if hdg=0)"""
-    lat_calc, lng_calc = wp_dist2latlng(home_lat, home_lng, takeoff_heading, along)
-    return wp_dist2latlng(lat_calc, lng_calc, (takeoff_heading + 90.0) % 360.0, right)
 
 def add_waypoint(mav_command, lat_calc, lng_calc, alt_calc, p1=0, p2=0, p3=0, p4=0, frame=mav.MAV_FRAME_GLOBAL_RELATIVE_ALT):
     global sequence
@@ -50,6 +46,14 @@ def add_waypoint(mav_command, lat_calc, lng_calc, alt_calc, p1=0, p2=0, p3=0, p4
     wp.add(mav.MAVLink_mission_item_message(m.target_system, m.target_component, sequence, frame, mav_command,
                                             0, 1, p1, p2, p3, p4, lat_calc, lng_calc, alt_calc))
     sequence = sequence+1
+
+class LatLongHead:
+    # A class to hold the latitude, longitude, heading, altitude and distance for different aspects
+    lat = 0
+    lng = 0
+    hdg = 0
+    alt = 0
+    distance = 0
 ###############################################################################################################
 # MAIN CODE SPACE
 ###############################################################################################################
@@ -67,7 +71,7 @@ print("P.P.S I am not a great programmer :(")
 print("")
 print("All test flights are from Waterfly Warehouse")
 print("")
-print("All disturbances are started after 5s of test run commencing")
+print("All disturbances are started after 15s of test run commencing")
 print("---------------------------------------------------")
 
 print("Enter the required number of test runs")
@@ -137,13 +141,12 @@ test_loiter_to_alt = abs(float(input()))
 
 
 wp_dist = 150 # Distance between waypoints
-wp_alt = test_loiter_to_alt+25 # Unused waypoint altitudes - eg: takeoff alt
+wp_buffer_alt = test_loiter_to_alt+25 # We will be flying to this altitude to prepare for the nexy test
 home_lat = 12.886097191929261
 home_lng = 79.8657674964945
 home_alt = 0.0  # Waterfly Warehouse points
-wp_radius = 50.0
-wp_takeoff_alt = test_loiter_to_alt +20.0
-takeoff_dist = 100.0  # Defaulted for a small craft
+wp_radius = 5.0
+takeoff_dist = 200.0  # Defaulted for a small craft
 turn_heading = 270.0 # Make a turn of this many degrees after every way point
 takeoff_heading = 0.0
 loiter_radius = 50.0
@@ -168,25 +171,42 @@ m.param_set_send('WP_RADIUS', wp_radius)
 
 # Start building the mission plan
 sequence = 0
+curr = LatLongHead()
+curr.lat = home_lat
+curr.lng = home_lng
+curr.hdg = 0
+curr.alt = home_alt
 
 # Initializing the mission
-add_waypoint(mav.MAV_CMD_NAV_WAYPOINT,home_lat,home_lng,home_alt,frame=mav.MAV_FRAME_GLOBAL)
-add_waypoint(mav.MAV_CMD_NAV_TAKEOFF,0,0,wp_takeoff_alt,p1=12)
+curr.alt = home_alt + 30 # The height we want it to ascend to
+add_waypoint(mav.MAV_CMD_NAV_WAYPOINT,curr.lat,curr.lng,curr.alt,frame=mav.MAV_FRAME_GLOBAL)
+add_waypoint(mav.MAV_CMD_NAV_TAKEOFF,0,0,curr.alt,p1=12)
 
 # The main stuff
-lat,lng = point(takeoff_dist,0.0)
-add_waypoint(mav.MAV_CMD_NAV_WAYPOINT,lat,lng,wp_alt)
-# To the west side
-west_track = -wp_dist
-east_track = -wp_dist + test_deviation
 
 # The Racetrack type flight plan
 index_step = 0
 temp_message = ""
-along_cursor = takeoff_dist
+test = LatLongHead()
+deviateFlag = False  # A flag that becomes true after an even test so that the track deviates slightly
+                     # prevents multiple tests happening over the same region
 for i in range(test_runs):
-    alt = test_alt[i]
-    dist = test_distance[i]
+    # We are going some meters ahead from the takeoff point and then telling it to fly this altitude
+    curr.lat, curr.lng = wp_dist2latlng(curr.lat, curr.lng, curr.hdg, takeoff_dist)
+    add_waypoint(mav.MAV_CMD_NAV_WAYPOINT, curr.lat, curr.lng, wp_buffer_alt)
+    # To turn left after reaching the waypoint
+    curr.hdg = turn_left(curr.hdg)
+    curr.lat, curr.lng = wp_dist2latlng(curr.lat, curr.lng, curr.hdg, wp_dist)
+    curr.alt = test_loiter_to_alt
+    add_waypoint(mav.MAV_CMD_NAV_WAYPOINT, curr.lat, curr.lng, wp_buffer_alt)
+    curr.hdg = turn_left(curr.hdg)
+
+    # test start ..X... X <- here now
+    #                   |
+    #                   |
+    # H ----------------X
+    test.alt = test_alt[i]
+    test.distance = test_distance[i]
     up_step, down_step = test_step_percent[i] # extracts the entire row and gives it's columns to the members - **Python**
     has_step = (up_step > 0) or (down_step > 0) # Check if a step disturbance was ordered by the user
     time_step = test_step_duration[index_step] if has_step else 0.0 # Looks like [2 0 1 2] based on times and no disturbance passes
@@ -208,55 +228,94 @@ for i in range(test_runs):
         print("~~~Zero means no step~~~")
 
     # To check direction - if it is -ve then it gets multiplied to change which way we are pointing
-    track = west_track if i % 2 == 0 else east_track
-    direction = -1 if i % 2 == 0 else +1
-    settle_dist = 7.5*cruise_speed  # Settle for 7.5s before performing a step disturbance
+    deviateFlag = True if i%2 == 0 else False  # Use
+    settle_dist = 15*cruise_speed  # Settle for 15s before performing a step disturbance
     step_dist = time_step*cruise_speed # Distance of the step
     needed_dist = settle_dist + ((step_dist+settle_dist) if up_step > 0 else 0) + ((step_dist+settle_dist) if down_step > 0 else 0)
-    if needed_dist > dist:
+    if needed_dist > test.distance + settle_dist*2:
         print(
-            f"WARNING Test {i + 1}: distance {dist:.0f} m too short for the steps ({needed_dist:.0f} m needed) - extending")
-        dist = needed_dist + settle_dist*2
+            f"WARNING Test {i+1}: distance {test.distance:.0f} m too short for the steps ({needed_dist:.0f} m needed) - extending")
+        test.distance = needed_dist + settle_dist*2 + 10 # the 10 is there just in case to avoid tailstrikes
 
-    # LOITER-TO-ALT and start the process
-    start = along_cursor
-    lat,lng = point(start,track)
-    add_waypoint(mav.MAV_CMD_NAV_LOITER_TO_ALT, lat,lng,alt,p2 = loiter_radius, p4=1)
+    # LOITER-TO-ALT and start the process to first settle the aircraft
+    curr.alt = test_loiter_to_alt
+    curr.lat, curr.lng = wp_dist2latlng(curr.lat,curr.lng,curr.hdg,settle_dist/2)
+    add_waypoint(mav.MAV_CMD_NAV_LOITER_TO_ALT, curr.lat,curr.lng,curr.alt,p1=1 ,p2 = loiter_radius, p4=1)
+    # By now we should be at the start of the test
+    # First way point at same testing altitude to ensure it flies straight there and is settled
+    curr.alt = test.alt
+    curr.lat, curr.lng = wp_dist2latlng(curr.lat, curr.lng, curr.hdg, 400)
+    add_waypoint(mav.MAV_CMD_NAV_WAYPOINT, curr.lat, curr.lng, curr.alt)
 
-    # The main run
-    pos = start + (direction*settle_dist)
+    # This is to ensure a proper stepped descent into every test run
+    curr.lat, curr.lng = wp_dist2latlng(curr.lat, curr.lng, curr.hdg, settle_dist)
+    add_waypoint(mav.MAV_CMD_NAV_WAYPOINT, curr.lat, curr.lng, curr.alt)
+
+    # The test run. We will check if there is a step and execute the following
+    # Note: Step profiles look like
+    #         X____<____
+    #        /          \
+    # X__<__/            \X__<___
+    # or the other side for a negative dip
+
     if up_step > 0:
-        # We are putting one waypoint on top in the path and then after the distance, it is set back
-        lat,lng = point(pos,track)
-        pos = pos + (direction*step_dist)
-        add_waypoint(mav.MAV_CMD_NAV_WAYPOINT, lat, lng, alt*(1+up_step / 100.0))
-        lat, lng = point(pos, track)
-        add_waypoint(mav.MAV_CMD_NAV_WAYPOINT, lat, lng, alt)
-        pos = pos +(direction*settle_dist)
+        # It will be settled at the correct altitude now. Time for the step disturbance
+        curr.alt = test.alt*(1+up_step/100)
+        curr.distance = step_dist
+        curr.lat,curr.lng = wp_dist2latlng(curr.lat,curr.lng,curr.hdg,curr.distance)
+        add_waypoint(mav.MAV_CMD_NAV_WAYPOINT, curr.lat, curr.lng, curr.alt)
+        test.distance = test.distance - curr.distance
+
+        # Now for the waypoint that will bring it back to the same altitude but a little faster
+        curr.alt = test.alt
+        curr.distance = settle_dist/2
+        curr.lat, curr.lng = wp_dist2latlng(curr.lat, curr.lng, curr.hdg, curr.distance)
+        add_waypoint(mav.MAV_CMD_NAV_WAYPOINT, curr.lat, curr.lng, curr.alt)
+        test.distance = test.distance - curr.distance
     if down_step > 0:
-        lat, lng = point(pos, track)
-        pos = pos + (direction * step_dist)
-        add_waypoint(mav.MAV_CMD_NAV_WAYPOINT, lat, lng, alt * (1-down_step / 100.0))
-        lat, lng = point(pos, track)
-        add_waypoint(mav.MAV_CMD_NAV_WAYPOINT, lat, lng, alt)
-        pos = pos + (direction * settle_dist)
-    end = start + (direction*dist)
-    lat,lng = point(end,track)
-    add_waypoint(mav.MAV_CMD_NAV_LOITER_TO_ALT, lat, lng, test_loiter_to_alt, p2=loiter_radius, p4=1)
+        # It will be settled at the correct altitude now. Time for the step disturbance
+        curr.alt = test.alt * (1 - down_step / 100)
+        curr.distance = step_dist
+        curr.lat, curr.lng = wp_dist2latlng(curr.lat, curr.lng, curr.hdg, curr.distance)
+        add_waypoint(mav.MAV_CMD_NAV_WAYPOINT, curr.lat, curr.lng, curr.alt)
+        test.distance = test.distance - curr.distance
+
+        # Now for the waypoint that will bring it back to the same altitude but a little faster
+        curr.alt = test.alt
+        curr.distance = settle_dist/2
+        curr.lat, curr.lng = wp_dist2latlng(curr.lat, curr.lng, curr.hdg, curr.distance)
+        add_waypoint(mav.MAV_CMD_NAV_WAYPOINT, curr.lat, curr.lng, curr.alt)
+        test.distance = test.distance - curr.distance
+
+    # Here is where the test run has completed - mark the final waypoint!
+    curr.distance = test.distance
+    curr.alt = test.alt
+    curr.lat, curr.lng = wp_dist2latlng(curr.lat, curr.lng, curr.hdg, curr.distance)
+    add_waypoint(mav.MAV_CMD_NAV_WAYPOINT, curr.lat, curr.lng, curr.alt)
 
     # NEW: Add a buffer at the end in case there are some overshoots still present
-    buffer_along = end + (direction* wp_dist)
-    lat, lng = point(buffer_along, track)
-    add_waypoint(mav.MAV_CMD_NAV_WAYPOINT, lat, lng, wp_alt)
+    curr.distance = settle_dist*1.3  # this is for a buffer distance
+    curr.alt = wp_buffer_alt
+    curr.lat, curr.lng = wp_dist2latlng(curr.lat, curr.lng, curr.hdg, curr.distance)
+    add_waypoint(mav.MAV_CMD_NAV_WAYPOINT, curr.lat, curr.lng, curr.alt)
 
-    # Direction change
-    if i < test_runs - 1:
-        other_track = east_track if track == west_track else west_track
-        lat, lng = point(buffer_along, other_track)
-        add_waypoint(mav.MAV_CMD_NAV_WAYPOINT, lat, lng, wp_alt)
-        along_cursor = buffer_along
-lat, lng = point(takeoff_dist + 2 * wp_dist, 0.0)
-add_waypoint(mav.MAV_CMD_NAV_WAYPOINT, lat, lng, wp_alt)
+
+    # Removed the Loiter-to-alt again cause we dont need it. One loiter to alt for the next test is enough
+    curr.hdg = turn_left(curr.hdg)
+
+    # Check if the next run has to be offset or not - if true then do it else dont
+    if deviateFlag:
+        curr.distance = wp_dist + test_deviation
+    else:
+        curr.distance = wp_dist
+
+    # Add the waypoint
+    curr.alt = wp_buffer_alt
+    curr.lat, curr.lng = wp_dist2latlng(curr.lat, curr.lng, curr.hdg, curr.distance)
+    add_waypoint(mav.MAV_CMD_NAV_WAYPOINT, curr.lat, curr.lng, curr.alt)
+    curr.hdg = turn_left(curr.hdg)
+
+# To land instantly after test is done (We dont care about RTL - waste of time and battery in SITL)
 add_waypoint(mav.MAV_CMD_NAV_LAND, home_lat, home_lng, 0)
 
 ## Run the Mission and then End it once landed  - AI GENERATED
