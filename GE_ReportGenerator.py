@@ -13,7 +13,8 @@ print(r"""
     |_|   |_|_|\__, |_| |_|\__|   |_|\___||___/\__| |_| \_\___| .__/ \___/|_|   \__| 
                |___/                                          |_|                    
 """)
-print("="*82)
+format_total_row_len = 130
+print("="*format_total_row_len)
 
 # Just loading all the test information
 import json
@@ -38,9 +39,9 @@ print("\n"*2)
 print(f" "*25, "Ground Effect Test Flight ")
 print("\n"*2)
 
-# The Table from here on out
+# The introduction table with the basic information
 format_margin = 2
-format_total_row_len = 82
+format_total_row_len = 130
 format_first_col = int((format_total_row_len-2*format_margin)/2)
 print(f"{'|'}{'-'*format_first_col}{'|'}{'-'*format_first_col}{'|'}")
 print(f"|{'Aircraft Name':^{format_first_col}}|{pass_airframe_name:^{format_first_col}}|")
@@ -48,3 +49,26 @@ print(f"|{'Flight Log Path':^{format_first_col}}|{pass_flog_path:^{format_first_
 print(f"|{'Flight Date and Time':^{format_first_col}}|{current_datetime:^{format_first_col}}|")
 print(f"|{'Cruise Speed':^{format_first_col}}|{pass_cruise_speed:^{format_first_col}}|")
 print(f"{'|'}{'-'*format_first_col}{'|'}{'-'*format_first_col}{'|'}")
+
+# Making the Test Matrix
+print(f"{'|'}{'Test Matrix':^{format_total_row_len-2}}{'|'}")
+
+# For formatting the table
+format_table_col = int(format_total_row_len / 5)
+print(f"{'|'}{'Run No':^{format_table_col}}{'|'}{'Altitude':^{format_table_col}}{'|'}{'Distance':^{format_table_col}}{'|'}"
+      f"{'Step Duration':^{format_table_col}}{'|'}{'Step Percent':^{format_table_col}}{'|'}")
+pos_message = ""
+neg_message = ""
+for i in range(pass_leg_no):
+    pos_step,neg_step = pass_run_step_percent[i]
+    if pos_step > 0:
+        pos_message = "+"
+    if neg_step > 0:
+        neg_message = "-"
+    print(f"{'|'}{f'Test - {pass_leg_no[i]}':^{format_table_col}}"
+          f"{'|'}{pass_run_alt[i]:^{format_table_col}}"
+          f"{'|'}{pass_run_dist[i]:^{format_table_col}}"
+          f"{'|'}{pass_run_step_duration[i]:^{format_table_col}}"
+          f"{'|'}{f'{pos_message}{pos_step},{neg_message}{neg_step}':^{format_table_col}}")
+    pos_message = ""
+    neg_message = ""
