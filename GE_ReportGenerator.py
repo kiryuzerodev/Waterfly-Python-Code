@@ -79,5 +79,34 @@ for i in range(pass_leg_no):
           f"{'|'}{f'{pos_message}{pos_step},{neg_message}{neg_step}':^{format_table_col}}")
     pos_message = ""
     neg_message = ""
-
+print("-"*format_total_row_len)
 # Write-up
+print("\n\nTesting procedure")
+print("~"*len("Testing procedure"))
+print("The plane has taken off from the Waterfly Warehouse, with a heading of 0 degree")
+print("After which it performs a left turn once it has obtained the desired cruising altitude")
+print("This altitude is also the reference for the plane to reach once a test run or leg is completed")
+print("The plane performs one more left turn and begins to approach the testing leg")
+print("The first waypoint before going to the required testing altitude is a Loiter-to-Alt command")
+print("The plane performs a circle maneuver to descend or ascend in altitude based on the altitude required")
+print("Once the test altitude has been achieved, it performs one final circle to change the heading into the test path")
+print("The test has officially commenced from this point onwards")
+if any(pass_run_step_percent):
+    print("As a step disturbance was ordered, the duration and percent change are calculated and correspondingly")
+    print("waypoints are placed in the flight path. The waypoints ensure a step change in altitude only")
+    print("They do not however, apply the disturbance to the low level controllers")
+    print("NOTE: This is a known issue and we are only testing the TECS controller - a Lua script can be used to change this later")
+print("Intermediate waypoints are defined which can cause small bumps in the flight path ")
+print(f"The test runs are executed a total of {pass_leg_no} times as ordered by the user")
+print("Each time the plane completes a test run, it takes a left turn and prepares itself by climbing to the relief altitude")
+print("Buffer waypoints are also added at the end of each test run to ensure it can safely climb to said altitude")
+print("It then performs a series of left turns and prepares for the next leg")
+print("Each time, the racetrack style path gets slightly deviated if asked by the user")
+print("This is useful to visualize the flight tests later in a viewer as all tests will be at different locations")
+print("Once the ordered tests are completed, as this is an SITL simulation, the plane is ordered to land")
+print("The plane attempts to go home and land, and once landed, it changes to Manual mode and indicating it has crashed")
+print("The user at this point kills the SITL simulation and this report is generated")
+
+# A section to call the bin2csv.py and start the conversion into CSV and plotting the required graphs
+print("Would you like to convert the flight log into a CSV file and start calculations? (Y/N)")
+check_calc = input().upper()
