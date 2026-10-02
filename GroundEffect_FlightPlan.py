@@ -6,6 +6,7 @@
 from pymavlink import mavutil, mavwp
 import math
 import os
+import json
 # Predefinition - for scope related issues
 mav = mavutil.mavlink
 wp = mavwp.MAVWPLoader()
@@ -343,5 +344,30 @@ print("Your plane has landed successfullay")
 
 log_dir = os.path.expanduser("~/ardupilot/ArduPlane/logs")
 log_num = int(open(f"{log_dir}/LASTLOG.TXT").read().strip())
+log_path = f"{log_dir}/{log_num}"
 os.system("pkill -f arduplane; pkill -f mavproxy; pkill -f JSBSim")
 print(f"Log file: {log_dir}/{log_num:08d}.BIN")
+
+Ans = input("Would you like to open the Flight Test report generator interface? (y/n): ")
+if Ans == "y":
+    print("Transferring the data of the test flight")
+    # Defining a dictionary with the ordered test data so that we can parse it later and display it in the report
+    test_information = {
+        "Flight_log_path": log_path,
+        "Airframe_Name": test_airframe_name,
+        "Airframe_Cruise_Speed": cruise_speed,
+        "Number_of_legs": test_runs,
+        "Run_Altitude": test_alt,
+        "Run_Distance": test_distance,
+        "Run_Step_Duration": test_step_duration,
+        "Run_Step_Percent": test_step_percent, # <--- this will be used to check if we got a +,-,0,Both step cases
+    }
+
+    # Since a dictionary is an object in Python, we can now send it using the dump() function of JSON
+    with open('test_information.json', 'w') as f:
+        json.dump(test_information, f)
+
+    # Now call the report generation file using the following line:
+    os.system("python3 GE_ReportGenerator.py")
+else:
+    print("The flight log is available at the above location!")
