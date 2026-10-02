@@ -6,6 +6,7 @@
 from pymavlink import mavutil, mavwp
 import math
 import os
+import json
 # Predefinition - for scope related issues
 mav = mavutil.mavlink
 wp = mavwp.MAVWPLoader()
@@ -71,7 +72,7 @@ print("P.P.S I am not a great programmer :(")
 print("")
 print("All test flights are from Waterfly Warehouse")
 print("")
-print("All disturbances are started after 15s of test run commencing")
+print("All disturbances are started after 30s of test run commencing")
 print("---------------------------------------------------")
 
 print("Enter the required number of test runs")
@@ -137,11 +138,14 @@ test_deviation = float(input())
 print("Enter LOITER-TO-ALT (m) before and after every test run")
 test_loiter_to_alt = abs(float(input()))
 
+print("Enter LOITER-TO-ALT height ABOVE each test altitude (m) - min 15, 20 recommended")
+loiter_above = max(15.0, abs(float(input())))
+test_loiter_to_alt = max(test_alt) + loiter_above      # only used for wp_buffer_alt now
 ##################### MAV LINK COMMANDS ##############################
 
 
 wp_dist = 150 # Distance between waypoints
-wp_buffer_alt = test_loiter_to_alt+25 # We will be flying to this altitude to prepare for the nexy test
+wp_buffer_alt = test_loiter_to_alt # We will be flying to this altitude to prepare for the nexy test
 home_lat = 12.886097191929261
 home_lng = 79.8657674964945
 home_alt = 0.0  # Waterfly Warehouse points
@@ -231,13 +235,14 @@ for i in range(test_runs):
 
     # To check direction - if it is -ve then it gets multiplied to change which way we are pointing
     deviateFlag = True if i%2 == 0 else False  # Use
-    settle_dist = 15*cruise_speed  # Settle for 15s before performing a step disturbance
+    settle_dist = 30*cruise_speed  # Settle for 30s before performing a step disturbance
     step_dist = time_step*cruise_speed # Distance of the step
     needed_dist = settle_dist + ((step_dist+settle_dist) if up_step > 0 else 0) + ((step_dist+settle_dist) if down_step > 0 else 0)
     if needed_dist > test.distance + settle_dist*2:
         print(
             f"WARNING Test {i+1}: distance {test.distance:.0f} m too short for the steps ({needed_dist:.0f} m needed) - extending")
         test.distance = needed_dist + settle_dist*2 + 10 # the 10 is there just in case to avoid tailstrikes
+    curr.alt = test.alt + loiter_above
 
     # LOITER-TO-ALT and start the process to first settle the aircraft
     curr.alt = test_loiter_to_alt
@@ -339,5 +344,30 @@ print("Your plane has landed successfullay")
 
 log_dir = os.path.expanduser("~/ardupilot/ArduPlane/logs")
 log_num = int(open(f"{log_dir}/LASTLOG.TXT").read().strip())
+log_path = f"{log_dir}/{log_num}"
 os.system("pkill -f arduplane; pkill -f mavproxy; pkill -f JSBSim")
 print(f"Log file: {log_dir}/{log_num:08d}.BIN")
+
+Ans = input("Would you like to open the Flight Test report generator interface? (y/n): ")
+if Ans == "y":
+    print("Transferring the data of the test flight")
+    # Defining a dictionary with the ordered test data so that we can parse it later and display it in the report
+    test_information = {
+        "Flight_log_path": log_path,
+        "Airframe_Name": test_airframe_name,
+        "Airframe_Cruise_Speed": cruise_speed,
+        "Number_of_legs": test_runs,
+        "Run_Altitude": test_alt,
+        "Run_Distance": test_distance,
+        "Run_Step_Duration": test_step_duration,
+        "Run_Step_Percent": test_step_percent, # <--- this will be used to check if we got a +,-,0,Both step cases
+    }
+
+    # Since a dictionary is an object in Python, we can now send it using the dump() function of JSON
+    with open('test_information.json', 'w') as f:
+        json.dump(test_information, f)
+
+    # Now call the report generation file using the following line:
+    os.system("python3 GE_ReportGenerator.py")
+else:
+    print("The flight log is available at the above location!")
