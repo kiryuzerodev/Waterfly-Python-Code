@@ -3,6 +3,7 @@
 # This is a test to check if branch change has actually worked - I'm going to leave this comment here anyway
 # Import section for other uses
 from datetime import datetime
+import subprocess
 
 # Fancy ass title
 title = r"""
@@ -110,3 +111,11 @@ print("The user at this point kills the SITL simulation and this report is gener
 # A section to call the bin2csv.py and start the conversion into CSV and plotting the required graphs
 print("Would you like to convert the flight log into a CSV file and start calculations? (Y/N)")
 check_calc = input().upper()
+if check_calc == "Y":
+    print("\n Converting into CSV....")
+    # !!WARNING!! - THIS EXPECTS THE BIN2CSV CODE TO BE IN THE SAME LOCATION AS THIS FILE
+    # MAKE IT EXPLICIT IN THE FUTURE IF YOU CANNOT HAVE IT IN THE SAME LOCATION
+    subprocess.run(["python3", "bin2csv_custom.py",pass_flog_path])
+    print("Conversion complete!")
+else:
+    print(f"\n Thank you for using this script! Flight log can be found at: \n{pass_flog_path}")
