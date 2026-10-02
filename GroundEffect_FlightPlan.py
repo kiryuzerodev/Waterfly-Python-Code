@@ -73,7 +73,12 @@ print("")
 print("All test flights are from Waterfly Warehouse")
 print("")
 print("All disturbances are started after 30s of test run commencing")
-print("---------------------------------------------------")
+print("---------------------------------------------------\n")
+
+print("Choose the test run - documentation purposes only!")
+print("GE. Ground Effect Test Flight")
+print("NO. Normal Test Flight")
+test_type = input().upper()
 
 print("Enter the required number of test runs")
 test_runs = int(input())
@@ -352,7 +357,6 @@ Ans = input("Would you like to open the Flight Test report generator interface? 
 if Ans == "y":
     print("Transferring the data of the test flight")
     # Defining a dictionary with the ordered test data so that we can parse it later and display it in the report
-    test_type = "GE"
     test_information = {
         "Test_type": test_type,
         "Flight_log_path": log_path,
