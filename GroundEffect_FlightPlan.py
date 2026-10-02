@@ -369,5 +369,6 @@ if Ans == "y":
 
     # Now call the report generation file using the following line:
     os.system("python3 GE_ReportGenerator.py")
+    # Rest will be continued into the report generation file
 else:
     print("The flight log is available at the above location!")
