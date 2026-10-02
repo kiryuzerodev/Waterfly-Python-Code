@@ -352,7 +352,9 @@ Ans = input("Would you like to open the Flight Test report generator interface? 
 if Ans == "y":
     print("Transferring the data of the test flight")
     # Defining a dictionary with the ordered test data so that we can parse it later and display it in the report
+    test_type = "GE"
     test_information = {
+        "Test type": test_type,
         "Flight_log_path": log_path,
         "Airframe_Name": test_airframe_name,
         "Airframe_Cruise_Speed": cruise_speed,
