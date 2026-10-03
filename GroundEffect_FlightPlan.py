@@ -168,8 +168,8 @@ print(f"Heartbeat from system {m.target_system} and component {m.target_componen
 # Check the vehicle is actually at the warehouse (home is set by SITL at boot, not by the mission)
 gpi = m.recv_match(type='GLOBAL_POSITION_INT', blocking=True, timeout=10)
 if gpi is None or abs(gpi.lat / 1e7 - home_lat) > 0.01 or abs(gpi.lon / 1e7 - home_lng) > 0.01:
-  print("WARNING: vehicle is not at the warehouse. Start SITL with:")
-  print(f"  fly {test_airframe_name} --custom-location={home_lat},{home_lng},{home_alt},{takeoff_heading:.0f}")
+  print("\n\n\n\nWARNING: vehicle is not at the warehouse. Start SITL with:")
+  print(f"  fly {test_airframe_name} --custom-location={home_lat},{home_lng},{home_alt},{takeoff_heading:.0f}\n\n\n\n")
 
 # Get the set cruise speed so we can calc the distance
 m.param_fetch_one('AIRSPEED_CRUISE')
@@ -236,6 +236,7 @@ for i in range(test_runs):
         temp_message = "Negative Step" if down_step > 0 else ""
         temp_step = down_step if down_step > 0 else up_step
         print(f"{temp_message}: {temp_step}")
+        temp_step = 0
         print("~~~Zero means no step~~~")
 
     # To check direction - if it is -ve then it gets multiplied to change which way we are pointing
@@ -349,7 +350,8 @@ print("Your plane has landed successfullay")
 
 log_dir = os.path.expanduser("~/ardupilot/ArduPlane/logs")
 log_num = int(open(f"{log_dir}/LASTLOG.TXT").read().strip())
-log_path = f"{log_dir}/{log_num}"
+log_number = f"{log_num:08d}.BIN"
+log_path = f"{log_dir}/{log_number}"
 os.system("pkill -f arduplane; pkill -f mavproxy; pkill -f JSBSim")
 print(f"Log file: {log_dir}/{log_num:08d}.BIN")
 
@@ -358,8 +360,8 @@ if Ans == "y":
     print("Transferring the data of the test flight")
     # Defining a dictionary with the ordered test data so that we can parse it later and display it in the report
     test_information = {
-        "Flight_Log_Number": log_num,
-        "Test_type": test_type,
+        "Flight_Log_Number": log_number,
+        "Test_Type": test_type,
         "Flight_log_path": log_path,
         "Airframe_Name": test_airframe_name,
         "Airframe_Cruise_Speed": cruise_speed,
@@ -375,7 +377,7 @@ if Ans == "y":
         json.dump(test_information, f)
 
     # Now call the report generation file using the following line:
-    os.system("python3 GE_ReportGenerator.py")
+    os.system('python3 "/home/kiryuzerodev/Waterfly Python Code/GE_ReportGenerator.py"')
     # Rest will be continued into the report generation file
 else:
     print("The flight log is available at the above location!")

@@ -118,17 +118,17 @@ if check_calc == "Y":
     print("\n Converting into CSV....")
     # !!WARNING!! - THIS EXPECTS THE BIN2CSV CODE TO BE IN THE SAME LOCATION AS THIS FILE
     # MAKE IT EXPLICIT IN THE FUTURE IF YOU CANNOT HAVE IT IN THE SAME LOCATION
-    subprocess.run(["python3", "bin2csv_custom.py",pass_flog_path])
+    subprocess.run(["python3", "/home/kiryuzerodev/Waterfly Python Code/bin2csv_custom.py",pass_flog_path])
     print("Starting process of calculations and plotting...")
     # !!WARNING!! - THE PATH HAS BEEN HARDCODED FOR NOW WHICH MEANS THIS WORKS ONLY FOR MY SYSTEM
     # YOU MUST CHANGE IT TO WHERE THE CSV FILES ARE BEING STORED OR ELSE THIS WON'T WORK
     flog_csv_path = "/home/kiryuzerodev/Waterfly Python Code/flight_csv/"
     flog_csv_path += pass_flog_number
-    subprocess.run(["python3", "clean_the_CSVs.py",flog_csv_path])
+    subprocess.run(["python3", "/home/kiryuzerodev/Waterfly Python Code/clean_the_CSVs.py",flog_csv_path])
 
     # Finally automatically pass the cleaned file to calcgrapher to complete the pipeline
     cleaned_path = os.path.join(flog_csv_path, "Cleaned")
 
-    subprocess.run(["python3", "GE_CalcGrapher.py",cleaned_path])
+    subprocess.run(["python3", "/home/kiryuzerodev/Waterfly Python Code/GE_CalcGrapher.py",cleaned_path])
 else:
     print(f"\n Thank you for using this script! Flight log can be found at: \n{pass_flog_path}")
