@@ -351,6 +351,78 @@ while True:
             msg.C14
         ])
 
+# For CONTROL TUNING CTUN
+CTUN_Data = []
+
+flight_log = mavutil.mavlink_connection(flight_log_path)
+
+while True:
+    msg = flight_log.recv_match()
+
+    if msg is None:
+        break
+
+    if msg.get_type() == "CTUN":
+        CTUN_Data.append([
+            msg.TimeUS,
+            msg.NavPitch,
+            msg.Pitch,
+            msg.ThO
+        ])
+
+# For PITCH PID
+PIDP_Data = []
+
+flight_log = mavutil.mavlink_connection(flight_log_path)
+
+while True:
+    msg = flight_log.recv_match()
+
+    if msg is None:
+        break
+
+    if msg.get_type() == "PIDP":
+        PIDP_Data.append([
+            msg.TimeUS,
+            msg.Tar,
+            msg.Act,
+            msg.Flags
+        ])
+
+# For AIRSPEED
+ARSP_Data = []
+
+flight_log = mavutil.mavlink_connection(flight_log_path)
+
+while True:
+    msg = flight_log.recv_match()
+
+    if msg is None:
+        break
+
+    if msg.get_type() == "ARSP":
+        ARSP_Data.append([
+            msg.TimeUS,
+            getattr(msg, "Airspeed", float("NaN"))
+        ])
+
+# For RANGEFINDER
+RFND_Data = []
+
+flight_log = mavutil.mavlink_connection(flight_log_path)
+
+while True:
+    msg = flight_log.recv_match()
+
+    if msg is None:
+        break
+
+    if msg.get_type() == "RFND":
+        RFND_Data.append([
+            msg.TimeUS,
+            getattr(msg, "Dist", float("NaN"))
+        ])
+
 # For FLIGHT MODE
 MODE_Data = []
 
@@ -515,7 +587,10 @@ while True:
             msg.ph,
             msg.pmin,
             msg.pmax,
-            msg.dspdem
+            msg.dspdem,
+            getattr(msg, "iph", float("NaN")),
+            getattr(msg, "ith", float("NaN")),
+            getattr(msg, "f", float("NaN"))
         ])
 
 # For Power BAT
@@ -688,7 +763,35 @@ TECS_Timed = time_match(
     Master_Time_Axis,
     TECS_Data,
     tol,
-    13
+    16
+)
+
+CTUN_Timed = time_match(
+    Master_Time_Axis,
+    CTUN_Data,
+    tol,
+    3
+)
+
+PIDP_Timed = time_match(
+    Master_Time_Axis,
+    PIDP_Data,
+    tol,
+    3
+)
+
+ARSP_Timed = time_match(
+    Master_Time_Axis,
+    ARSP_Data,
+    tol,
+    1
+)
+
+RFND_Timed = time_match(
+    Master_Time_Axis,
+    RFND_Data,
+    tol,
+    1
 )
 
 BAT_Timed = time_match(
@@ -836,6 +939,48 @@ with open(os.path.join(output_dir, f"Sensors_{file_name}.csv"), "w", newline="")
 
         writer.writerow(row)
 
+# Write PIDP data
+with open(os.path.join(output_dir, f"PIDP_{file_name}.csv"), "w", newline="") as file:
+
+    writer = csv.writer(file)
+
+    writer.writerow([
+        "Time",
+        "PIDP_Tar",
+        "PIDP_Act",
+        "PIDP_Flags"
+    ])
+
+    for i in range(len(Master_Time_Axis)):
+
+        row = [Time_Axis[i]]
+
+        row.extend(PIDP_Timed[i][1:])
+
+        writer.writerow(row)
+
+# Write airspeed and rangefinder data
+with open(os.path.join(output_dir, f"AirData_{file_name}.csv"), "w", newline="") as file:
+
+    writer = csv.writer(file)
+
+    writer.writerow([
+        "Time",
+        "ARSP_Airspeed",
+        "RFND_Dist"
+    ])
+
+    for i in range(len(Master_Time_Axis)):
+
+        row = [Time_Axis[i]]
+
+        row.extend(ARSP_Timed[i][1:])
+        row.extend(RFND_Timed[i][1:])
+
+        writer.writerow(row)
+
+
+
 with open(os.path.join(output_dir, f"EKF_{file_name}.csv"), "w", newline="") as file:
 
     writer = csv.writer(file)
@@ -933,7 +1078,14 @@ with open(os.path.join(output_dir, f"Navigation_{file_name}.csv"), "w", newline=
         "TECS_ph",
         "TECS_pmin",
         "TECS_pmax",
-        "TECS_dspdem"
+        "TECS_dspdem",
+        "TECS_iph",
+        "TECS_ith",
+        "TECS_f",
+
+        "CTUN_NavPitch",
+        "CTUN_Pitch",
+        "CTUN_ThO"
     ])
 
     for i in range(len(Master_Time_Axis)):
@@ -942,6 +1094,8 @@ with open(os.path.join(output_dir, f"Navigation_{file_name}.csv"), "w", newline=
 
         row.extend(NTUN_Timed[i][1:])
         row.extend(TECS_Timed[i][1:])
+
+        row.extend(CTUN_Timed[i][1:])
 
         writer.writerow(row)
 
@@ -1093,6 +1247,10 @@ print("XKF2:", len(XKF2_Timed))
 print("XKF3:", len(XKF3_Timed))
 print("NTUN:", len(NTUN_Timed))
 print("TECS:", len(TECS_Timed))
+print("CTUN:", len(CTUN_Timed))
+print("PIDP:", len(PIDP_Timed))
+print("ARSP:", len(ARSP_Timed))
+print("RFND:", len(RFND_Timed))
 print("BAT:", len(BAT_Timed))
 print("IMU:", len(IMU_Data))
 print("IMU timed:", len(IMU_Timed))
