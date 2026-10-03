@@ -113,9 +113,9 @@ rngfndr = AirData["RFND_Dist"]
 # Plotting
 plt.figure()
 smoothing = 5
-plot_this_shit(AirData["Time"],rngfndr,"Raw Airspeed")
+plot_this_shit(AirData["Time"],rngfndr,"Raw RangeFinder Data")
 rngfndr_avg = cen_moving_avg(rngfndr,smoothing)
-plot_this_shit(AirData["Time"][smoothing:-smoothing],rngfndr_avg,"Cleaned Airspeed")
+plot_this_shit(AirData["Time"][smoothing:-smoothing],rngfndr_avg,"Cleaned RangeFinder Data")
 
 # Formatting
 plt.title("RangeFinder Data vs Time")
@@ -134,9 +134,9 @@ time = Sensor["Time"]
 # Plotting
 plt.figure()
 smoothing = 3
-plot_this_shit(time,baro_alt,"Raw Airspeed")
-baro_alt_avg = cen_moving_avg(rngfndr,smoothing)
-plot_this_shit(time[smoothing:-smoothing],baro_alt_avg,"Cleaned Airspeed")
+plot_this_shit(time,baro_alt,"Raw Barometric Altitude")
+baro_alt_avg = cen_moving_avg(baro_alt,smoothing)
+plot_this_shit(time[smoothing:-smoothing],baro_alt_avg,"Cleaned Barometric Altitude")
 
 # Formatting
 plt.title("Barometric Altitude vs Time")

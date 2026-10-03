@@ -37,9 +37,12 @@ pass_run_dist = test_information.get('Run_Distance',0)
 pass_run_step_duration = test_information.get('Run_Step_Duration',0)
 pass_run_step_percent = test_information.get('Run_Step_Percent',0)
 pass_test_type = test_information.get('Test_Type',"DEFAULT")
-pass_flog_number = test_information.get('Flight_Log_Number',"0000000.BIN")
-pass_flog_number = pass_flog_number.removesuffix(".BIN")
+pass_flog_number = test_information.get('Flight_Log_Number',"00000000.BIN")
 
+if isinstance(pass_flog_number, int):
+    pass_flog_number = f"{pass_flog_number:08d}.BIN"
+
+pass_flog_number = pass_flog_number.removesuffix(".BIN")
 current_datetime = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
 
 # To start making the table like format that can be copied and pasted into Google Docs
@@ -76,7 +79,7 @@ for i in range(pass_leg_no):
         pos_message = "+"
     if neg_step > 0:
         neg_message = "-"
-    print(f"{'|'}{f'Test - {pass_leg_no[i]}':^{format_table_col}}"
+    print(f"{'|'}{f'Test - {i+1}':{pass_leg_no[i]}'}"
           f"{'|'}{pass_run_alt[i]:^{format_table_col}}"
           f"{'|'}{pass_run_dist[i]:^{format_table_col}}"
           f"{'|'}{pass_run_step_duration[i]:^{format_table_col}}"
