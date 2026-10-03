@@ -3,6 +3,7 @@ import os
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import random
 
 flight_folder = "/home/kiryuzerodev/Waterfly Python Code/flight_csv/00000039/Cleaned"
 
@@ -25,36 +26,39 @@ def plot_this_shit(x_axis_data,y_axis_data,label_name):
                     'indigo','violet','coral','salmon','turquoise',
                     'crimson','darkgreen','darkblue','darkred','darkorange']
     random_color = random.choice(color_options)
-    plt.plot(x_axis_data,y_axis_data,linewidth=2.5,color=random_color,label= label_name)
+    plt.plot(x_axis_data,y_axis_data,linewidth=1.5,color=random_color,label= label_name)
 #####################
 # Main code area
 #####################
 
 
-Sensors_file = [
-    file for file in os.listdir(flight_folder)
-    if file.startswith("Sensors_") and file.endswith(".csv")
-][0]
+Sensors_file = [file for file in os.listdir(flight_folder) if file.startswith("Sensors_") and file.endswith(".csv")][0]
 
 # #~~~~~~~~~~~~~~~~ AIRSPEED SECTION ~~~~~~~~~~~~~~~~~~
-# # Extracting
-# AirData_file = [file for file in os.listdir(flight_folder) if file.startswith("AirData_") and file.endswith(".csv")][0]
-# AirData = pd.read_csv(os.path.join(flight_folder, AirData_file))
-# airspeed = AirData["ARSP_Airspeed"]
-#
-# # Plotting
-# plt.figure()
-# smoothing = 3
-# plot_this_shit(AirData["Time"],airspeed,"Raw Airspeed")
-# airspeed_avg = cen_moving_avg(airspeed,smoothing)
-# plot_this_shit(AirData["Time"][smoothing:-smoothing],airspeed_avg,"Cleaned Airspeed")
-#
-# # Formatting
-# plt.title("Airspeed vs Time")
-# plt.xlabel("Time (s)")
-# plt.ylabel("Airspeed (m/s)")
-# plt.grid(True)
-# plt.show()
+# Extracting
+print("Plotting Airspeed info... ")
+AirData_file = [file for file in os.listdir(flight_folder) if file.startswith("AirData_") and file.endswith(".csv")][0]
+AirData = pd.read_csv(os.path.join(flight_folder, AirData_file))
+airspeed = AirData["ARSP_Airspeed"]
+time = AirData["Time"]
+
+# Plotting
+plt.figure(figsize=(12, 8))
+smoothing = 150
+plot_this_shit(time,airspeed,"Raw Airspeed")
+airspeed_avg = cen_moving_avg(airspeed,smoothing)
+plot_this_shit(time[smoothing:-smoothing],airspeed_avg,"Cleaned Airspeed")
+
+# Formatting
+plt.title("Airspeed vs Time")
+plt.xlabel("Time (s)")
+plt.ylabel("Airspeed (m/s)")
+plt.grid(True)
+plt.legend()
+
+# Save figures in the directory: home/kiryuzerodev/Waterfly Python Code/*file by bin2csv.py*/Images
+plt.savefig("/home/kiryuzerodev/Waterfly Python Code/flight_csv/Plots/00000039/Airspeed Plot.png", dpi=300)
+print("Airspeed saved!")
 #
 # #~~~~~~~~~~~~~~~~ RANGEFINDER SECTION ~~~~~~~~~~~~~~~~~~
 # # Extracting
@@ -78,25 +82,20 @@ Sensors_file = [
 
 #~~~~~~~~~~~~~~~~ ALTITUDE SECTION ~~~~~~~~~~~~~~~~~~
 # Extracting
+print("Plotting Barometric altitude info... ")
 Sensors_file = [file for file in os.listdir(flight_folder) if file.startswith("Sensors_") and file.endswith(".csv")][0]
 Sensors = pd.read_csv(os.path.join(flight_folder, Sensors_file))
 
 baro_alt = Sensors["BaroAlt"]
 time = Sensors["Time"]
 
-plt.figure()
+plt.figure(figsize=(12, 8))
 
-smoothing = 3
+smoothing = 100
 
 plot_this_shit(time, baro_alt, "Raw Barometric Altitude")
-
 baro_alt_avg = cen_moving_avg(baro_alt, smoothing)
-
-plot_this_shit(
-    time[smoothing:-smoothing],
-    baro_alt_avg,
-    "Cleaned Barometric Altitude"
-)
+plot_this_shit(time[smoothing:-smoothing], baro_alt_avg,"Cleaned Barometric Altitude")
 
 plt.title("Barometric Altitude vs Time")
 plt.xlabel("Time (s)")
@@ -104,9 +103,6 @@ plt.ylabel("Barometric Altitude (m)")
 plt.grid(True)
 plt.legend()
 
-plt.savefig("/home/kiryuzerodev/Waterfly Python Code/Altitude_Test_00000039.png", dpi=150)
-
-print("Graph saved.")
-print("Opening graph...")
-
-plt.show()
+# Save figures in the directory: home/kiryuzerodev/Waterfly Python Code/*file by bin2csv.py*/Images
+plt.savefig("/home/kiryuzerodev/Waterfly Python Code/flight_csv/Plots/00000039/Altitude Plot.png", dpi=300)
+print("Barometric altitude saved!")
