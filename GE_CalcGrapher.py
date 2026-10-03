@@ -1,5 +1,7 @@
 import pandas as pd
 import os
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 flight_folder = "/home/kiryuzerodev/Waterfly Python Code/flight_csv/00000039/Cleaned"
