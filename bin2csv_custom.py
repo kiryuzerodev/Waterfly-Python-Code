@@ -14,7 +14,7 @@ flight_log_path = sys.argv[1]
 file_name = os.path.splitext(os.path.basename(flight_log_path))[0]
 
 # Create the output directory
-output_dir = os.path.join("flight_csv", file_name)
+output_dir = os.path.join("/home/kiryuzerodev/Waterfly Python Code/flight_csv", file_name)
 
 os.makedirs(output_dir, exist_ok=True)
 
