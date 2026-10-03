@@ -4,6 +4,8 @@
 # Import section for other uses
 from datetime import datetime
 import subprocess
+import os
+import json
 
 # Fancy ass title
 title = r"""
@@ -21,7 +23,6 @@ for line in title.splitlines():
 print("="*format_total_row_len)
 
 # Just loading all the test information
-import json
 with open('test_information.json', 'r') as f:
     test_information = json.load(f)
 
@@ -123,6 +124,11 @@ if check_calc == "Y":
     # YOU MUST CHANGE IT TO WHERE THE CSV FILES ARE BEING STORED OR ELSE THIS WON'T WORK
     flog_csv_path = "/home/kiryuzerodev/Waterfly Python Code/flight_csv/"
     flog_csv_path += pass_flog_number
-    subprocess.run(["python3", "cleann_the_CSVs.py",flog_csv_path])
+    subprocess.run(["python3", "clean_the_CSVs.py",flog_csv_path])
+
+    # Finally automatically pass the cleaned file to calcgrapher to complete the pipeline
+    cleaned_path = os.path.join(flog_csv_path, "Cleaned")
+
+    subprocess.run(["python3", "GE_CalcGrapher.py",cleaned_path])
 else:
     print(f"\n Thank you for using this script! Flight log can be found at: \n{pass_flog_path}")
