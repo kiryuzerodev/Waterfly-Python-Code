@@ -79,7 +79,7 @@ def plot_this_shit(x_axis_data,y_axis_data,label_name):
 #####################
 # Main code area
 #####################
-
+print(" "*10, " GRAPHING AND CALCULATION INTERFACE STARTED")
 
 # Plotting the data
 # First Extract the data from the CSV files and then plot by calling the defined function
@@ -126,6 +126,7 @@ def plot_this_shit(x_axis_data,y_axis_data,label_name):
 
 #~~~~~~~~~~~~~~~~ ALTITUDE SECTION ~~~~~~~~~~~~~~~~~~
 # Extracting
+print(" "*10,"Altitude section running...")
 Sensors_file = [file for file in os.listdir(flight_folder) if file.startswith("Sensors_") and file.endswith(".csv")][0]
 Sensors = pd.read_csv(os.path.join(flight_folder, Sensors_file))
 baro_alt = Sensors["BaroAlt"]
