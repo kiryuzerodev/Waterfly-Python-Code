@@ -358,6 +358,7 @@ if Ans == "y":
     print("Transferring the data of the test flight")
     # Defining a dictionary with the ordered test data so that we can parse it later and display it in the report
     test_information = {
+        "Flight_Log_Number": log_num,
         "Test_type": test_type,
         "Flight_log_path": log_path,
         "Airframe_Name": test_airframe_name,

@@ -36,6 +36,8 @@ pass_run_dist = test_information.get('Run_Distance',0)
 pass_run_step_duration = test_information.get('Run_Step_Duration',0)
 pass_run_step_percent = test_information.get('Run_Step_Percent',0)
 pass_test_type = test_information.get('Test_Type',"DEFAULT")
+pass_flog_number = test_information.get('Flight_Log_Number',"0000000.BIN")
+pass_flog_number = pass_flog_number.removesuffix(".BIN")
 
 current_datetime = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
 
@@ -91,22 +93,22 @@ print("The plane performs one more left turn and begins to approach the testing 
 print("The first waypoint before going to the required testing altitude is a Loiter-to-Alt command")
 print("The plane performs a circle maneuver to descend or ascend in altitude based on the altitude required")
 print("Once the test altitude has been achieved, it performs one final circle to change the heading into the test path")
-print("The test has officially commenced from this point onwards")
+print("The test has officially commenced from this point onwards \n")
 if any(pass_run_step_percent):
     print("As a step disturbance was ordered, the duration and percent change are calculated and correspondingly")
     print("waypoints are placed in the flight path. The waypoints ensure a step change in altitude only")
-    print("They do not however, apply the disturbance to the low level controllers")
+    print("They do not however, apply the disturbance to the low level controllers \n")
     print("NOTE: This is a known issue and we are only testing the TECS controller - a Lua script can be used to change this later")
 print("Intermediate waypoints are defined which can cause small bumps in the flight path ")
 print(f"The test runs are executed a total of {pass_leg_no} times as ordered by the user")
 print("Each time the plane completes a test run, it takes a left turn and prepares itself by climbing to the relief altitude")
 print("Buffer waypoints are also added at the end of each test run to ensure it can safely climb to said altitude")
-print("It then performs a series of left turns and prepares for the next leg")
+print("It then performs a series of left turns and prepares for the next leg \n")
 print("Each time, the racetrack style path gets slightly deviated if asked by the user")
 print("This is useful to visualize the flight tests later in a viewer as all tests will be at different locations")
 print("Once the ordered tests are completed, as this is an SITL simulation, the plane is ordered to land")
 print("The plane attempts to go home and land, and once landed, it changes to Manual mode and indicating it has crashed")
-print("The user at this point kills the SITL simulation and this report is generated")
+print("The user at this point kills the SITL simulation and this report is generated\n")
 
 # A section to call the bin2csv.py and start the conversion into CSV and plotting the required graphs
 print("Would you like to convert the flight log into a CSV file and start calculations? (Y/N)")
@@ -116,6 +118,11 @@ if check_calc == "Y":
     # !!WARNING!! - THIS EXPECTS THE BIN2CSV CODE TO BE IN THE SAME LOCATION AS THIS FILE
     # MAKE IT EXPLICIT IN THE FUTURE IF YOU CANNOT HAVE IT IN THE SAME LOCATION
     subprocess.run(["python3", "bin2csv_custom.py",pass_flog_path])
-    print("Conversion complete!")
+    print("Starting process of calculations and plotting...")
+    # !!WARNING!! - THE PATH HAS BEEN HARDCODED FOR NOW WHICH MEANS THIS WORKS ONLY FOR MY SYSTEM
+    # YOU MUST CHANGE IT TO WHERE THE CSV FILES ARE BEING STORED OR ELSE THIS WON'T WORK
+    flog_csv_path = "/home/kiryuzerodev/Waterfly Python Code/flight_csv/"
+    flog_csv_path += pass_flog_number
+    subprocess.run(["python3", "cleann_the_CSVs.py",flog_csv_path])
 else:
     print(f"\n Thank you for using this script! Flight log can be found at: \n{pass_flog_path}")
