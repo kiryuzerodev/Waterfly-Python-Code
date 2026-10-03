@@ -642,7 +642,24 @@ while True:
             msg.Alt,
             msg.Frame
         ])
+# For LOG MESSAGES
+MSG_Data = []
 
+flight_log = mavutil.mavlink_connection(flight_log_path)
+
+while True:
+    msg = flight_log.recv_match()
+
+    if msg is None:
+        break
+
+    if msg.get_type() == "MSG":
+        MSG_Data.append([
+            msg.TimeUS,
+            getattr(msg, "ID", float("NaN")),
+            getattr(msg, "Seq", float("NaN")),
+            getattr(msg, "Message", "")
+        ])
 
 # For GEO FENCE
 FNCE_Data = []
@@ -1192,6 +1209,38 @@ else:
 
     print("Mission: not found - skipped")
 
+# Write log messages only if they exist
+if len(MSG_Data) > 0:
+
+    with open(
+        os.path.join(output_dir, f"Messages_{file_name}.csv"),
+        "w",
+        newline=""
+    ) as file:
+
+        writer = csv.writer(file)
+
+        writer.writerow([
+            "Time",
+            "ID",
+            "Seq",
+            "Message"
+        ])
+
+        for row in MSG_Data:
+
+            writer.writerow([
+                (row[0] - Master_Time_Axis[0]) / 1_000_000,
+                row[1],
+                row[2],
+                row[3]
+            ])
+
+    print("Messages:", len(MSG_Data))
+
+else:
+
+    print("Messages: not found - skipped")
 
 # Write geofence only if it exists
 if len(FNCE_Data) > 0:
