@@ -1460,4 +1460,4 @@ with open(os.path.join(output_dir, f"FlightData_{file_name}.csv"), "w", newline=
 
         writer.writerow(row)
 
-print("CSVs ready! Go to Waterfly Python Code/flight_csv annd look for the flight log name you want")
+print("CSVs ready! Go to Waterfly Python Code/flight_csv and look for the flight log name you want")
