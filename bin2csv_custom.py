@@ -212,8 +212,8 @@ while True:
             msg.SMS,
             msg.Offset,
             msg.GndTemp,
-            msg.H,
-            msg.CPress
+            getattr(msg, "H", float("NaN")),
+            getattr(msg, "CPress", float("NaN")),
         ])
 
 # For MAGNETOMETER
@@ -607,7 +607,7 @@ while True:
     if msg.get_type() == "BAT":
         BAT_Data.append([
             msg.TimeUS,
-            msg.Instance,
+            getattr(msg, "Instance", float("NaN")),
             msg.Volt,
             msg.Curr,
             msg.CurrTot,
@@ -1459,3 +1459,5 @@ with open(os.path.join(output_dir, f"FlightData_{file_name}.csv"), "w", newline=
         row.extend(BAT_Timed[i][1:])
 
         writer.writerow(row)
+
+print("CSVs ready! Go to Waterfly Python Code/flight_csv annd look for the flight log name you want")
