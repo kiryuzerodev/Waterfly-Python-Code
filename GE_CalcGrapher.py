@@ -92,11 +92,13 @@ airspeed = AirData["ARSP_Airspeed"]
 
 # Plotting
 plt.figure()
+smoothing = 3
 plot_this_shit(AirData["Time"],airspeed,"Raw Airspeed")
-airspeed_avg = cen_moving_avg(airspeed,3)
-plot_this_shit(AirData["Time"][3:-3],airspeed_avg,"Cleaned Airspeed")
+airspeed_avg = cen_moving_avg(airspeed,smoothing)
+plot_this_shit(AirData["Time"][smoothing:-smoothing],airspeed_avg,"Cleaned Airspeed")
 
 # Formatting
+plt.title("Airspeed vs Time")
 plt.xlabel("Time (s)")
 plt.ylabel("Airspeed (m/s)")
 plt.grid(True)
@@ -110,11 +112,13 @@ rngfndr = AirData["RFND_Dist"]
 
 # Plotting
 plt.figure()
+smoothing = 5
 plot_this_shit(AirData["Time"],rngfndr,"Raw Airspeed")
-rngfndr_avg = cen_moving_avg(rngfndr,5)
-plot_this_shit(AirData["Time"][5:-5],rngfndr_avg,"Cleaned Airspeed")
+rngfndr_avg = cen_moving_avg(rngfndr,smoothing)
+plot_this_shit(AirData["Time"][smoothing:-smoothing],rngfndr_avg,"Cleaned Airspeed")
 
 # Formatting
+plt.title("RangeFinder Data vs Time")
 plt.xlabel("Time (s)")
 plt.ylabel("RangeFinder (m)")
 plt.grid(True)
@@ -122,18 +126,21 @@ plt.show()
 
 #~~~~~~~~~~~~~~~~ ALTITUDE SECTION ~~~~~~~~~~~~~~~~~~
 # Extracting
-AirData_file = [file for file in os.listdir(flight_folder) if file.startswith("AirData_") and file.endswith(".csv")][0]
-AirData = pd.read_csv(os.path.join(flight_folder, AirData_file))
-rngfndr = AirData["RFND_Dist"]
+Sensor_file = [file for file in os.listdir(flight_folder) if file.startswith("Sensor_") and file.endswith(".csv")][0]
+Sensor = pd.read_csv(os.path.join(flight_folder, Sensor_file))
+baro_alt = Sensor["BaroAlt"]
+time = Sensor["Time"]
 
 # Plotting
 plt.figure()
-plot_this_shit(AirData["Time"],rngfndr,"Raw Airspeed")
-rngfndr_avg = cen_moving_avg(rngfndr,5)
-plot_this_shit(AirData["Time"][5:-5],rngfndr_avg,"Cleaned Airspeed")
+smoothing = 3
+plot_this_shit(time,baro_alt,"Raw Airspeed")
+baro_alt_avg = cen_moving_avg(rngfndr,smoothing)
+plot_this_shit(time[smoothing:-smoothing],baro_alt_avg,"Cleaned Airspeed")
 
 # Formatting
+plt.title("Barometric Altitude vs Time")
 plt.xlabel("Time (s)")
-plt.ylabel("RangeFinder (m)")
+plt.ylabel("Barometric Altitude (m)")
 plt.grid(True)
 plt.show()
