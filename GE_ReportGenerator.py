@@ -28,21 +28,31 @@ with open('test_information.json', 'r') as f:
 
 # Process the data by first loading it into variables which we can use
 # The get command ensures if there is no value, it will just skip it or put NaN
-pass_flog_path = test_information.get('Flight_log_path',False)
-pass_airframe_name = test_information.get('Airframe_Name',"Rascal - Default")
-pass_cruise_speed = test_information.get('Airframe_Cruise_Speed',0)
-pass_leg_no = test_information.get('Number_of_legs',0)
-pass_run_alt = test_information.get('Run_Altitude',0)
-pass_run_dist = test_information.get('Run_Distance',0)
-pass_run_step_duration = test_information.get('Run_Step_Duration',0)
-pass_run_step_percent = test_information.get('Run_Step_Percent',0)
-pass_test_type = test_information.get('Test_Type',"DEFAULT")
-pass_flog_number = test_information.get('Flight_Log_Number',"00000000.BIN")
+pass_flog_path = test_information.get('Flight_log_path', False)
+pass_airframe_name = test_information.get('Airframe_Name', "Rascal - Default")
+pass_cruise_speed = test_information.get('Airframe_Cruise_Speed', 0)
+pass_leg_no = test_information.get('Number_of_legs', 0)
+pass_run_alt = test_information.get('Run_Altitude', [])
+pass_run_dist = test_information.get('Run_Distance', [])
+pass_run_step_duration = test_information.get('Run_Step_Duration', [])
+pass_run_step_percent = test_information.get('Run_Step_Percent', [])
 
-if isinstance(pass_flog_number, int):
-    pass_flog_number = f"{pass_flog_number:08d}.BIN"
+# Handle current/older JSON naming
+pass_test_type = test_information.get('Test_Type',test_information.get('Test_type', "DEFAULT"))
 
+# Get log filename from JSON if available
+pass_flog_number = test_information.get('Flight_Log_Number', None)
+
+if pass_flog_number is None:
+    pass_flog_number = os.path.basename(pass_flog_path)
+
+# Make sure the filename has .BIN
+if not pass_flog_number.upper().endswith(".BIN"):
+    pass_flog_number += ".BIN"
+
+# Remove extension for the CSV folder name
 pass_flog_number = pass_flog_number.removesuffix(".BIN")
+
 current_datetime = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
 
 # To start making the table like format that can be copied and pasted into Google Docs
@@ -73,22 +83,32 @@ print(f"{'|'}{'Run No':^{format_table_col}}{'|'}{'Altitude':^{format_table_col}}
       f"{'Step Duration':^{format_table_col}}{'|'}{'Step Percent':^{format_table_col}}{'|'}")
 pos_message = ""
 neg_message = ""
+index_step = 0
+
 for i in range(pass_leg_no):
-    pos_step,neg_step = pass_run_step_percent[i]
+    pos_step, neg_step = pass_run_step_percent[i]
+
     if pos_step > 0:
         pos_message = "+"
     if neg_step > 0:
         neg_message = "-"
-    print(f"{'|'}{f'Test - {i+1}':{pass_leg_no[i]}'}"
+
+    step_duration = 0.0
+    if pos_step > 0 or neg_step > 0:
+        step_duration = pass_run_step_duration[index_step]
+        index_step += 1
+
+    print(f"{'|'}{f'Test - {i+1}':^{format_table_col}}"
           f"{'|'}{pass_run_alt[i]:^{format_table_col}}"
           f"{'|'}{pass_run_dist[i]:^{format_table_col}}"
-          f"{'|'}{pass_run_step_duration[i]:^{format_table_col}}"
+          f"{'|'}{step_duration:^{format_table_col}}"
           f"{'|'}{f'{pos_message}{pos_step},{neg_message}{neg_step}':^{format_table_col}}")
+
     pos_message = ""
     neg_message = ""
+
 print("-"*format_total_row_len)
 # Write-up
-print("\n\nTesting procedure")
 print("~"*len("Testing procedure"))
 print("The plane has taken off from the Waterfly Warehouse, with a heading of 0 degree")
 print("After which it performs a left turn once it has obtained the desired cruising altitude")
