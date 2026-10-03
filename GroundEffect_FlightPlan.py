@@ -129,6 +129,7 @@ else:
                 print("Accepted!")
             case 4:
                 print("Accepted!")
+                test_step_duration.append(0.0)
             case _:
                 print("Invalid - Exiting cause idk how to go back")
         print("Enter the total distance of this test run (m)")
